@@ -56,7 +56,7 @@ void UART5_IRQHandler(void){
 		USART_ClearITPendingBit(UART5,USART_IT_RXNE);
 	}
 } 
- /*
+ 
 void TIM7_IRQHandler(void){ 
 	unsigned int count;
 	
@@ -148,7 +148,7 @@ void TIM10_IRQHandler(void){
 		  break;
 	  }	 
 	}
-}*/
+}
  
 /*******************************************************************************
 * Function Name  : NMI_Handler

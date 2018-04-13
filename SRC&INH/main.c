@@ -64,11 +64,11 @@ void Task_Start(void *pvParameters){
     taskEXIT_CRITICAL();            //ÍË³öÁÙ½çÇø
 }
  
-unsigned int Task_USB_Count=0;
-void Task_USB(void *pvParameters){
-  while(1){
+unsigned int Task_USB_Count=0; 
+void Task_USB(void *pvParameters){ 
+  while(1){ 
 		vTaskDelay(1000); 
-		Task_USB_Count++;
+		Task_USB_Count++; 
 		/*if(USB_DETECT()){ 
 	    if(bDeviceState == CONFIGURED){ 
   	    CDC_Receive_DATA(); 

@@ -15,8 +15,8 @@ extern unsigned char C1_Option,C2_Option,P_SW_Option,F_Mea_Option;
 #define SUB_NUM_MAX  9
 
 #define TABLE_NUM_MAX 5
-#define PUBLIC_NUM_MAX 256
-#define DIM_NUM_MAX 64
+#define PUBLIC_NUM_MAX 128
+#define DIM_NUM_MAX 32
 
 struct _NUM{
   unsigned char table;

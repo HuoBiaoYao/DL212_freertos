@@ -528,7 +528,7 @@ void VGet(double *para){
 	reps = (unsigned int)(*(para+1)); 
 	chan = (unsigned int)(*(para+2)); 
 	time = (unsigned int)(*(para+3)); 
-	SysTick_Delay_us(time); 
+	delay_ms(time); 
   for(i=0;i<reps;i++){ 
     Var[dest+i] = psSE_FUNC->read(chan+i); 
 	} 

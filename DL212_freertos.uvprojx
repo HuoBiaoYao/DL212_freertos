@@ -334,7 +334,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32L1XX_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Libraries\CMSIS\Include;.\Libraries\STM32L1xx_StdPeriph_Driver\inc;.\SRC&amp;INH;.\SRC&amp;INH\FreeRTOS\include;.\SRC&amp;INH\FreeRTOS\portable\RVDS\ARM_CM3;.\SRC&amp;INH\FreeRTOS\portable\MemMang;.\SRC&amp;INH\SYSTEM;.\SRC&amp;INH\hal;.\SRC&amp;INH\hw;.\Libraries\STM32_USB-FS-Device_Driver\inc;.\SRC&amp;INH\USB</IncludePath>
+              <IncludePath>.\Libraries\CMSIS\Include;.\Libraries\STM32L1xx_StdPeriph_Driver\inc;.\SRC&amp;INH;.\SRC&amp;INH\FreeRTOS\include;.\SRC&amp;INH\FreeRTOS\portable\RVDS\ARM_CM3;.\SRC&amp;INH\FreeRTOS\portable\MemMang;.\SRC&amp;INH\SYSTEM;.\SRC&amp;INH\hal;.\SRC&amp;INH\hw;.\Libraries\STM32_USB-FS-Device_Driver\inc;.\SRC&amp;INH\USB;.\SRC&amp;INH\Abstract Data Type</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -391,60 +391,21 @@
               <FileName>DL212_easy_mode.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\SRC&amp;INH\DL212_easy_mode.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>0</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>2</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>0</v6Lto>
-                    <v6WtE>0</v6WtE>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
             </File>
             <File>
               <FileName>stm32l1xx_it.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\SRC&amp;INH\stm32l1xx_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>DL212.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\DL212.c</FilePath>
+            </File>
+            <File>
+              <FileName>Datalogger_Protocols.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Datalogger_Protocols.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -495,6 +456,36 @@
               <FileName>port.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\SRC&amp;INH\freertos\portable\RVDS\ARM_CM3\port.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>adt</GroupName>
+          <Files>
+            <File>
+              <FileName>arithmetic_expression.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Abstract Data Type\arithmetic_expression.c</FilePath>
+            </File>
+            <File>
+              <FileName>bitree.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Abstract Data Type\bitree.c</FilePath>
+            </File>
+            <File>
+              <FileName>stack.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Abstract Data Type\stack.c</FilePath>
+            </File>
+            <File>
+              <FileName>traverse.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Abstract Data Type\traverse.c</FilePath>
+            </File>
+            <File>
+              <FileName>mylist.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Abstract Data Type\mylist.c</FilePath>
             </File>
           </Files>
         </Group>
