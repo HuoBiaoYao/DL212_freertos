@@ -4,6 +4,7 @@
 #include "usb_lib.h"
 #include "usb_istr.h"
 #include "dl212.h"
+#include "main.h"
 
 /*rtc int*/
 void EXTI2_IRQHandler(void){
@@ -14,8 +15,13 @@ void EXTI2_IRQHandler(void){
 }
 
 void EXTI15_10_IRQHandler(void){
+	unsigned i=0;
+	
   if(EXTI_GetITStatus(USB_DETECT_EXTI_LINE) != RESET){
- 
+    for(i=0;i<1000;i++){}
+    if(USB_DETECT()){ 
+		  xTaskResumeFromISR(Task_DL212_EasyMode_Handler);
+		}			
   }
 	EXTI_ClearITPendingBit(USB_DETECT_EXTI_LINE);
 }
