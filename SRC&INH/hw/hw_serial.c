@@ -70,8 +70,8 @@ void USART1_Config(void){
 	USART_ITConfig(USART1,USART_IT_IDLE,ENABLE);
 	
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;                
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;     
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1; 
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 7;     
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; 
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;           
 	NVIC_Init(&NVIC_InitStructure);
 	
@@ -87,7 +87,7 @@ void DMA1_Channel4_Config(void){
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1,ENABLE);
 	
   NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel4_IRQn;  
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;  
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 6;  
   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;  
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;  
   NVIC_Init(&NVIC_InitStructure);  
@@ -153,7 +153,7 @@ void USART2_SDI12_Config(void){
 	USART_Init(USART2, &USART_InitStructure);  
 	
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn; 
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0; 
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 6; 
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; 
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
 	NVIC_Init(&NVIC_InitStructure); 
@@ -184,7 +184,7 @@ void UART5_SDI12_Config(void){
 	USART_Init(UART5, &USART_InitStructure);
 	
 	NVIC_InitStructure.NVIC_IRQChannel = UART5_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 6;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; 
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
@@ -210,7 +210,7 @@ void USART2_RX_Config(USART_InitTypeDef sC_RS232_Init){
 	USART_Init(USART2, &sC_RS232_Init);
 	
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 6;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; 
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
@@ -235,7 +235,7 @@ void UART5_RX_Config(USART_InitTypeDef sC_RS232_Init){
 	USART_Init(UART5, &sC_RS232_Init);
 	
 	NVIC_InitStructure.NVIC_IRQChannel = UART5_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 6;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; 
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);

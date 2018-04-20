@@ -8,29 +8,34 @@
 
 /*rtc int*/
 void EXTI2_IRQHandler(void){
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
   if(EXTI_GetITStatus(EXTI_Line2) != RESET){
 		RTC_M41T81_IntCount++;
   }
 	EXTI_ClearITPendingBit(EXTI_Line2);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
-
+  
 void EXTI15_10_IRQHandler(void){
-	unsigned i=0;
+	unsigned int i=0;
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   if(EXTI_GetITStatus(USB_DETECT_EXTI_LINE) != RESET){
-    for(i=0;i<1000;i++){}
-    if(USB_DETECT()){ 
-		  xTaskResumeFromISR(Task_DL212_EasyMode_Handler);
-		}			
+    //xSemaphoreGiveFromISR(BinarySemaphore_USB,&xHigherPriorityTaskWoken);
   }
 	EXTI_ClearITPendingBit(USB_DETECT_EXTI_LINE);
+	//portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /*gprs and zigbee*/
 void DMA1_Channel4_IRQHandler(void){
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
   DMA_ClearFlag(DMA1_FLAG_TC4);
   DMA_Cmd(DMA1_Channel4,DISABLE);
 	USART1_DMA_Send_State = 0;
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /*gprs and zigbee
 void USART1_IRQHandler(void){
@@ -46,25 +51,32 @@ void USART1_IRQHandler(void){
 }*/
 /*c1 sdi12 or rs232 reiceive*/
 void USART2_IRQHandler(void){
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
   if(USART_GetITStatus(USART2,USART_IT_RXNE) != RESET){
 		USART_ClearITPendingBit(USART2,USART_IT_RXNE); 
 		psSDI12_Func->read(0,sSDI12_Para[0].rx_buf,(unsigned char*)&USART2->DR);
 		psC_RS232_Func->read(0,sC_RS232_Para[0].rx_buf,(unsigned char*)&USART2->DR);
 		USART_ClearITPendingBit(USART2,USART_IT_RXNE);
 	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 } 
 /*c2 sdi12 or rs232 reiceive*/
 void UART5_IRQHandler(void){
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
   if(USART_GetITStatus(UART5,USART_IT_RXNE) != RESET){
 		USART_ClearITPendingBit(UART5,USART_IT_RXNE); 
 		psSDI12_Func->read(1,sSDI12_Para[1].rx_buf,(unsigned char*)&UART5->DR);
 		psC_RS232_Func->read(1,sC_RS232_Para[1].rx_buf,(unsigned char*)&UART5->DR);
 		USART_ClearITPendingBit(UART5,USART_IT_RXNE);
 	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 } 
  
 void TIM7_IRQHandler(void){ 
 	unsigned int count;
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   if(TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET){
     TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
@@ -85,9 +97,12 @@ void TIM7_IRQHandler(void){
 		  break;
 	  }			
 	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 } 
+
 void TIM4_IRQHandler(void){ 
   volatile unsigned int count=0;
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   if(TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET){
     TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
@@ -108,9 +123,11 @@ void TIM4_IRQHandler(void){
 		  break;
 	  }			 
 	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 void TIM6_IRQHandler(void){ 
   volatile unsigned int count=0;
+	BaseType_t xHigherPriorityTaskWoken;  
 	
   if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET){
     TIM_ClearITPendingBit(TIM6, TIM_IT_Update); 
@@ -131,9 +148,11 @@ void TIM6_IRQHandler(void){
 		  break;
 	  }
 	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 } 
 void TIM10_IRQHandler(void){ 
   unsigned int count;
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   if(TIM_GetITStatus(TIM10, TIM_IT_Update) != RESET){ 
     TIM_ClearITPendingBit(TIM10, TIM_IT_Update); 
@@ -154,6 +173,7 @@ void TIM10_IRQHandler(void){
 		  break;
 	  }	 
 	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
  
 /*******************************************************************************
@@ -254,7 +274,11 @@ void USB_LP_IRQHandler(void)
 void USB_LP_CAN1_RX0_IRQHandler(void)
 #endif
 {
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
   USB_Istr();
+	xSemaphoreGiveFromISR(BinarySemaphore_USB,&xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
  
@@ -272,7 +296,10 @@ void USB_FS_WKUP_IRQHandler(void)
 void USBWakeUp_IRQHandler(void)
 #endif
 {
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
   EXTI_ClearITPendingBit(EXTI_Line18);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /******************************************************************************/

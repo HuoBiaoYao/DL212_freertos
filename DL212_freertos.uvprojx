@@ -407,6 +407,16 @@
               <FileType>1</FileType>
               <FilePath>.\SRC&amp;INH\Datalogger_Protocols.c</FilePath>
             </File>
+            <File>
+              <FileName>qksort.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\qksort.c</FilePath>
+            </File>
+            <File>
+              <FileName>issort.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\issort.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

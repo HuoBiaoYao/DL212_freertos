@@ -8,7 +8,7 @@
 #include "ctype.h"
 #include "DL212.h"
 #include "DL212_easy_mode.h"
-
+#include "main.h"
 
 struct _SPECIALDATA sEMData;
 unsigned char DL212_EasyMode=1;
@@ -242,17 +242,21 @@ void DL212_EasyMode_Config(void){
 	if(0 == strncmp("DL212 easy mode run",(const char*)(sUSB_Para.rx_buf),19) ||
 		 0 == strncmp("dl212 easy mode run",(const char*)(sUSB_Para.rx_buf),19)){ 
 	  DL212_EasyMode = 1; 	 
+		vTaskResume(Task2_Handler);
 		DL212_EasyMode_Init();
     i=sprintf(message,"DL212简易模式运行中...\r\n\r\n");USB_Send((unsigned char *)message,i); 	 
   }
 	else if(0 == strncmp("DL212 easy mode exit",(const char*)(sUSB_Para.rx_buf),20) ||
 		      0 == strncmp("dl212 easy mode exit",(const char*)(sUSB_Para.rx_buf),20)){
 	  DL212_EasyMode = 0;
+		DL212_Value_Display_Ctrl = 0;				
+    vTaskSuspend(Task2_Handler);
     i=sprintf(message,"DL212简易模式停止运行...\r\n\r\n");USB_Send((unsigned char *)message,i); 	 						
 	}
 	else if(0 == strncmp("DL212 easy mode config",(const char*)(sUSB_Para.rx_buf),22) ||
 		 0 == strncmp("dl212 easy mode config",(const char*)(sUSB_Para.rx_buf),22)){ 
 		DL212_EasyMode = 1; 
+		vTaskResume(Task2_Handler);	 
 		P_SW_Time=C1_Time=C2_Time=F_Mea_Time=1000;
 		P_SW_Option=C1_Option=C2_Option=F_Mea_Option=1;
     P_SW_Dest=0,C1_Dest=1,C2_Dest=2,F_Mea_Dest=3;

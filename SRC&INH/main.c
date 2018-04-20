@@ -7,16 +7,17 @@
 #include "semphr.h"
 #include "my_usb.h"
 #include "DL212_easy_mode.h"
-  
-TaskHandle_t Task_Start_Handler; 
-TaskHandle_t Task_USB_Handler; 
-TaskHandle_t Task_ADC_Handler; 
-TaskHandle_t Task_DL212_EasyMode_Handler; 
-
+ #include "issort.h" 
+ #include "math.h"
  
-//二值信号量句柄
+TaskHandle_t Task_Start_Handler; 
+TaskHandle_t Task1_Handler; 
+TaskHandle_t Task2_Handler; 
+TaskHandle_t Task3_Handler; 
+ 
+QueueHandle_t xQueue; 
 SemaphoreHandle_t BinarySemaphore; 
-//互斥信号量句柄
+SemaphoreHandle_t BinarySemaphore_USB; 
 SemaphoreHandle_t xSemaphore; 
 
 int main(void){ 
@@ -26,10 +27,31 @@ int main(void){
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
 	delay_init();               //延时函数初始化	  
 	uart_init(115200);					//初始化串口
-	delay_ms(2000);
-	
+	delay_ms(1000);
+  
+	//创建开始任务
+  xTaskCreate((TaskFunction_t )Task_Start,           //任务函数
+              (const char*    )"start_task",         //任务名称
+              (uint16_t       )32,                   //任务堆栈大小
+              (void*          )NULL,                 //传递给任务函数的参数
+              (UBaseType_t    )1,                    //任务优先级
+              (TaskHandle_t*  )&Task_Start_Handler); //任务句柄              
+  vTaskStartScheduler();          //开启任务调度
+
+  return 0;
+} 
+
+//开始任务任务函数
+void Task_Start(void *pvParameters){
+  taskENTER_CRITICAL();           //进入临界区
+  xQueue = xQueueCreate(10,sizeof(char));
+  BinarySemaphore_USB = xSemaphoreCreateBinary();
+ 	xSemaphore = xSemaphoreCreateMutex(); 
+  if(xQueue==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
+	  while(1);
+	}
 	My_USB_Init(); 
-  USART1_Config();  
+  //USART1_Config();  
 	psSE_FUNC->init(); 
 	psFram_Func->init(); 
   psFlash_Func->init();  
@@ -48,93 +70,76 @@ int main(void){
 	psSDI12_Func->init(1);
 	psC_RS232_Func->init(0,0);*/  
 	DL212_EasyMode_Init();
-	
-	BinarySemaphore = xSemaphoreCreateBinary();
-	xSemaphore = xSemaphoreCreateMutex(); 
-	//创建开始任务
-  xTaskCreate((TaskFunction_t )Task_Start,           //任务函数
-              (const char*    )"start_task",         //任务名称
-              (uint16_t       )32,                   //任务堆栈大小
-              (void*          )NULL,                 //传递给任务函数的参数
-              (UBaseType_t    )1,                    //任务优先级
-              (TaskHandle_t*  )&Task_Start_Handler); //任务句柄              
-  vTaskStartScheduler();          //开启任务调度
-
-  return 0;
-} 
-
-//开始任务任务函数
-void Task_Start(void *pvParameters){
-    taskENTER_CRITICAL();           //进入临界区
-
-    xTaskCreate((TaskFunction_t )Task_USB,     	
-                (const char*    )"task for usb",   	
+		
+    xTaskCreate((TaskFunction_t )Task1,     	
+                (const char*    )"task for ...",   	
                 (uint16_t       )128, 
                 (void*          )NULL,				
                 (UBaseType_t    )1,	
-                (TaskHandle_t*  )&Task_USB_Handler);   
+                (TaskHandle_t*  )&Task1_Handler);   
 
-    xTaskCreate((TaskFunction_t )Task_ADC,     
-                (const char*    )"task for adc",   
+    xTaskCreate((TaskFunction_t )Task2,     
+                (const char*    )"task for ...",   
                 (uint16_t       )128, 
                 (void*          )NULL,
                 (UBaseType_t    )1,
-                (TaskHandle_t*  )&Task_ADC_Handler); 
-	  xTaskCreate((TaskFunction_t )Task_DL212_EasyMode,     
-                (const char*    )"task for DL212 easy mode",   
+                (TaskHandle_t*  )&Task2_Handler); 
+	 /* xTaskCreate((TaskFunction_t )Task3,     
+                (const char*    )"task for ...",   
                 (uint16_t       )128, 
                 (void*          )NULL,
                 (UBaseType_t    )1,
-                (TaskHandle_t*  )&Task_DL212_EasyMode_Handler);   
+                (TaskHandle_t*  )&Task3_Handler); */  
     vTaskDelete(Task_Start_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区
 }
  
-unsigned int Task_USB_Count=0; 
-void Task_USB(void *pvParameters){ 
-  while(1){
-		if(USB_DETECT()){ 
-	    if(bDeviceState == CONFIGURED){ 
-  	    CDC_Receive_DATA(); 
-			  if(sUSB_Para.packet_rec){ 
-	      	DL212_EasyMode_Config(); 
-					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len);
-			  	sUSB_Para.packet_rec = 0; 
-				  sUSB_Para.rec_len = 0; 
-			  } 
-	    } 
-	  }
-		else{ 
-		  vTaskDelay(1000); 
-		  Task_USB_Count++; 
-		}
-  }
-}   
 
-float adc_value;
-unsigned int Task_ADC_Count=0;
-void Task_ADC(void *pvParameters){
-	portTickType xLastWakeTime; 
+void Task1(void *pvParameters){ 
+	BaseType_t err=pdFALSE;
 	
-  while(1){ 
-		adc_value = SE_AdcValue_Read(0);
-		vTaskDelay(1000); 
-		//vTaskDelayUntil(&xLastWakeTime,(500/portTICK_RATE_MS));
-		Task_ADC_Count++;
-	}
-}
+  while(1){
+		if(BinarySemaphore_USB != NULL){   
+			if(xSemaphoreTake(BinarySemaphore_USB,portMAX_DELAY) == pdTRUE){
+			  if(USB_DETECT()){ 
+	        if(bDeviceState == CONFIGURED){ 
+  	        CDC_Receive_DATA(); 
+			      if(sUSB_Para.packet_rec){ 
+	          	//DL212_EasyMode_Config(); 
+				    	USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len);
+			    	  sUSB_Para.packet_rec = 0; 
+				      sUSB_Para.rec_len = 0; 
+			      } 
+	        } 
+	      } 
+		  }
+		} 
+  } 
+} 
 
-void Task_DL212_EasyMode(void *pvParameters){
+unsigned int DL212_EasyMode_Scan_Count=0; 
+void Task2(void *pvParameters){ 
+	TickType_t xLastWakeTime; 
+	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
+	
+	xLastWakeTime = xTaskGetTickCount(); 
+  while(1){ 
+  	vTaskDelay(1000);   //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
+		if(DL212_EasyMode){  
+      DL212_EasyMode_Scan(); 
+      DL212_EasyMode_Scan_Count++; 
+		} 
+		else{ 
+		  vTaskSuspend(Task2_Handler); 
+		} 
+	} 
+} 
+ 
+void Task3(void *pvParameters){
 	portTickType xLastWakeTime; 
 
   while(1){ 
-		if(DL212_EasyMode){
-			vTaskDelayUntil(&xLastWakeTime,(1000/portTICK_RATE_MS));
-		  DL212_EasyMode_Scan(); 
-		}
-		else{
-		  vTaskSuspend(Task_DL212_EasyMode_Handler);
-		} 
+	  vTaskDelay(1000);   
 	}
 }
 

@@ -130,7 +130,7 @@ void TIM6_Init(unsigned int ms){
 	TIM_ClearFlag(TIM6, TIM_FLAG_Update);//如果不清除标志，下面配置中断后，会立刻进入一次中断
 	TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE); 
 	NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 5;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority =0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure); 
@@ -154,7 +154,7 @@ void TIM4_Init(unsigned int ms){
 	TIM_ClearFlag(TIM4, TIM_FLAG_Update);//如果不清除标志，下面配置中断后，会立刻进入一次中断	
 	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE); 
 	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 5;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority =0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure); 
@@ -178,7 +178,7 @@ void TIM7_Init(unsigned int ms){
 	TIM_ClearFlag(TIM7, TIM_FLAG_Update);//如果不清除标志，下面配置中断后，会立刻进入一次中断	
 	TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE); 
 	NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 5;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority =0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure); 
@@ -202,7 +202,7 @@ void TIM10_Init(unsigned int ms){
 	TIM_ClearFlag(TIM10, TIM_FLAG_Update);//如果不清除标志，下面配置中断后，会立刻进入一次中断
 	TIM_ITConfig(TIM10, TIM_IT_Update, ENABLE); 
 	NVIC_InitStructure.NVIC_IRQChannel = TIM10_IRQn;
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 5;
   NVIC_InitStructure.NVIC_IRQChannelSubPriority =0;
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
   NVIC_Init(&NVIC_InitStructure); 

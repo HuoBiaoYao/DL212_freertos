@@ -19,13 +19,13 @@ void SE_ADC_Init(void){
   ADC_InitStructure.ADC_ScanConvMode =DISABLE; 
   ADC_InitStructure.ADC_ContinuousConvMode = DISABLE; 
   ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
-  ADC_InitStructure.ADC_ExternalTrigConv = 0x0C000000;                            
-  //ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
+  //ADC_InitStructure.ADC_ExternalTrigConv = 0x0C000000;                            
+  ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
   ADC_InitStructure.ADC_NbrOfConversion = 1;
   ADC_Init(ADC1, &ADC_InitStructure);
  
 	ADC_DelaySelectionConfig(ADC1, ADC_DelayLength_Freeze); 
-  //ADC_PowerDownCmd(ADC1, ADC_PowerDown_Idle_Delay, ENABLE);  
+  ADC_PowerDownCmd(ADC1, ADC_PowerDown_Idle_Delay, ENABLE);  
   ADC_Cmd(ADC1, ENABLE); 
   while(ADC_GetFlagStatus(ADC1, ADC_FLAG_ADONS) == RESET){}
 }  
@@ -45,13 +45,13 @@ float SE_AdcValue_Read(unsigned char chan){
 			ADC_RegularChannelConfig(ADC1, ADC_Channel_10, 1, ADC_SampleTime_384Cycles); 
 		break;
     case 1:
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 1, ADC_SampleTime_384Cycles); 
+			ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 1, ADC_SampleTime_16Cycles); 
 		break;
     case 2:
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 1, ADC_SampleTime_384Cycles); 
+			ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 1, ADC_SampleTime_16Cycles); 
 		break	;	
     case 3:
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_13, 1, ADC_SampleTime_384Cycles); 
+			ADC_RegularChannelConfig(ADC1, ADC_Channel_13, 1, ADC_SampleTime_16Cycles); 
 		break; 
 		default:
 		break;
@@ -71,7 +71,7 @@ float Vref_Read(void){
   unsigned int adcv;  
 	float vref;
 	
-	ADC_RegularChannelConfig(ADC1,ADC_Channel_9,1,ADC_SampleTime_96Cycles); 
+	ADC_RegularChannelConfig(ADC1,ADC_Channel_9,1,ADC_SampleTime_16Cycles); 
 	ADC_SoftwareStartConv(ADC1);
   while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); 
   adcv = ADC_GetConversionValue(ADC1); 
@@ -84,7 +84,7 @@ float Bat_Read(void){
 	unsigned int adcv;  
 	float bat;
 	
-	ADC_RegularChannelConfig(ADC1,ADC_Channel_8,1,ADC_SampleTime_96Cycles); 
+	ADC_RegularChannelConfig(ADC1,ADC_Channel_8,1,ADC_SampleTime_16Cycles); 
 	ADC_SoftwareStartConv(ADC1); 
   while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); 
   adcv = ADC_GetConversionValue(ADC1); 
