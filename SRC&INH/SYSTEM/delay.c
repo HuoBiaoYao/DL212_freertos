@@ -1,10 +1,7 @@
-#include "delay.h"
-////////////////////////////////////////////////////////////////////////////////// 	 
-//如果需要使用OS,则包括下面的头文件即可.
-#if SYSTEM_SUPPORT_OS
+#include "delay.h" 
 #include "FreeRTOS.h"					//FreeRTOS使用		  
 #include "task.h"
-#endif
+ 
   
 static unsigned char  fac_us=0;							//us延时倍乘数			   
 static unsigned short int fac_ms=0;							//ms延时倍乘数,在ucos下,代表每个节拍的ms数

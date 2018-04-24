@@ -1,8 +1,7 @@
 #include "main.h" 
 #include "hw.h"
 #include "hal.h"
-#include "delay.h"
-#include "usart.h"
+#include "delay.h" 
 #include "task.h"
 #include "semphr.h"
 #include "my_usb.h"
@@ -26,8 +25,7 @@ int main(void){
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);//设置系统中断优先级分组4	 	 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
 	delay_init();               //延时函数初始化	  
-	uart_init(115200);					//初始化串口
-	delay_ms(1000);
+	delay_ms(3000);
   
 	//创建开始任务
   xTaskCreate((TaskFunction_t )Task_Start,           //任务函数
@@ -50,8 +48,8 @@ void Task_Start(void *pvParameters){
   if(xQueue==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
 	  while(1);
 	}
-	My_USB_Init(); 
-  //USART1_Config();  
+	My_USB_Init();  
+  USART1_Config();  
 	psSE_FUNC->init(); 
 	psFram_Func->init(); 
   psFlash_Func->init();  
@@ -93,30 +91,33 @@ void Task_Start(void *pvParameters){
     vTaskDelete(Task_Start_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区
 }
- 
+
 
 void Task1(void *pvParameters){ 
 	BaseType_t err=pdFALSE;
-	
+ 
   while(1){
-		if(BinarySemaphore_USB != NULL){   
-			if(xSemaphoreTake(BinarySemaphore_USB,portMAX_DELAY) == pdTRUE){
-			  if(USB_DETECT()){ 
-	        if(bDeviceState == CONFIGURED){ 
-  	        CDC_Receive_DATA(); 
-			      if(sUSB_Para.packet_rec){ 
-	          	//DL212_EasyMode_Config(); 
-				    	USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len);
-			    	  sUSB_Para.packet_rec = 0; 
-				      sUSB_Para.rec_len = 0; 
-			      } 
-	        } 
-	      } 
-		  }
-		} 
+    if(USB_DETECT()){ 
+      if(bDeviceState == CONFIGURED){ 
+        CDC_Receive_DATA(); 
+        if(sUSB_Para.packet_rec){ 
+          DL212_EasyMode_Config(); 
+          //USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len); 
+          sUSB_Para.packet_rec = 0; 
+          sUSB_Para.rec_len = 0; 
+        } 
+      } 
+	  } 
+		else{
+		  if(BinarySemaphore_USB != NULL){ 
+        if(xSemaphoreTake(BinarySemaphore_USB,portMAX_DELAY) == pdTRUE){ 
+	        SystemInit();
+				}
+			}				
+		}  
   } 
 } 
-
+ 
 unsigned int DL212_EasyMode_Scan_Count=0; 
 void Task2(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
@@ -124,8 +125,9 @@ void Task2(void *pvParameters){
 	
 	xLastWakeTime = xTaskGetTickCount(); 
   while(1){ 
-  	vTaskDelay(1000);   //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
-		if(DL212_EasyMode){  
+  	vTaskDelay(1000); //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
+		printf("北四环路");
+		if(DL212_EasyMode){ 
       DL212_EasyMode_Scan(); 
       DL212_EasyMode_Scan_Count++; 
 		} 

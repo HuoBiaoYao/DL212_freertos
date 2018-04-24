@@ -456,10 +456,6 @@ void xPortSysTickHandler( void )
 	uint32_t ulReloadValue, ulCompleteTickPeriods, ulCompletedSysTickDecrements, ulSysTickCTRL;
 	TickType_t xModifiableIdleTime;
 
-		/*if(GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_15)){//soros_freertos
-		  return;
-		}*/
-		__NOP();
 		/* Make sure the SysTick reload value does not overflow the counter. */
 		if( xExpectedIdleTime > xMaximumPossibleSuppressedTicks )
 		{
@@ -528,9 +524,7 @@ void xPortSysTickHandler( void )
 			if( xModifiableIdleTime > 0 )
 			{
 				__dsb( portSY_FULL_READ_WRITE );
-				if(0 == GPIO_ReadInputDataBit(GPIOB,GPIO_Pin_15)){//soros_freertos
-				  __wfi();
-				}
+				__wfi();
 				__isb( portSY_FULL_READ_WRITE );
 			}
 			configPOST_SLEEP_PROCESSING( xExpectedIdleTime );

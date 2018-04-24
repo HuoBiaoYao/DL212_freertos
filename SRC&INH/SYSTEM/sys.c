@@ -1,17 +1,6 @@
 #include "sys.h"
+#include "stdio.h"
 
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK  STM32开发板
-//系统中断分组设置化		   
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//修改日期:2012/9/10
-//版本：V1.4
-//版权所有，盗版必究。
-//Copyright(C) 正点原子 2009-2019
-//All rights reserved
-//********************************************************************************  
 //THUMB指令不支持汇编内联
 //采用如下方法实现执行汇编指令WFI  
 void WFI_SET(void)
@@ -35,3 +24,34 @@ __asm void MSR_MSP(unsigned int addr)
     MSR MSP, r0 			//set Main Stack value
     BX r14
 }
+
+//////////////////////////////////////////////////////////////////
+//加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
+#if 1
+#pragma import(__use_no_semihosting)             
+//标准库需要的支持函数                 
+struct __FILE 
+{ 
+	int handle; 
+
+}; 
+
+FILE __stdout;       
+//定义_sys_exit()以避免使用半主机模式    
+void _sys_exit(int x) 
+{ 
+	x = x; 
+} 
+//__use_no_semihosting was requested, but _ttywrch was 
+void _ttywrch(int ch)
+{
+ch = ch;
+}
+//重定义fputc函数 
+int fputc(int ch, FILE *f)
+{      
+  while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
+    USART1->DR = (unsigned char) ch;      
+	return ch;
+}
+#endif 

@@ -22,10 +22,10 @@ void EXTI15_10_IRQHandler(void){
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   if(EXTI_GetITStatus(USB_DETECT_EXTI_LINE) != RESET){
-    //xSemaphoreGiveFromISR(BinarySemaphore_USB,&xHigherPriorityTaskWoken);
+    xSemaphoreGiveFromISR(BinarySemaphore_USB,&xHigherPriorityTaskWoken);
   }
 	EXTI_ClearITPendingBit(USB_DETECT_EXTI_LINE);
-	//portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /*gprs and zigbee*/
@@ -277,7 +277,7 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   USB_Istr();
-	xSemaphoreGiveFromISR(BinarySemaphore_USB,&xHigherPriorityTaskWoken);
+	//xSemaphoreGiveFromISR(BinarySemaphore_USB,&xHigherPriorityTaskWoken);
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
