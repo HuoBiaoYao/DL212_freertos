@@ -16,11 +16,12 @@ C1------->RX1---PA3---USART2_RX
 C2<-------TX2---PC12---UART5_TX
 C2------->RX2---PD2----UART5_RX*/
  
+unsigned char USART_DMA_TxBuf[1]; 
+unsigned char USART_DMA_RxBuf[1];  
+/*usart1在portserial文件中实现
 char USART1_DMA_Send_State; 
 int  USART1_DMA_Rec_Cnt; 
-unsigned char USART_DMA_TxBuf[99]; 
-unsigned char USART_DMA_RxBuf[99]; 
- 
+
 void USART1_DMA_Send(unsigned short int lenth){ 
 	int timeout=100000; 
 	
@@ -37,7 +38,7 @@ void USART1_DMA_Send(unsigned short int lenth){
 	}
 } 
  
-void USART1_Config(void){
+void USART1_Config(unsigned int baudrate){
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
   NVIC_InitTypeDef NVIC_InitStructure;
@@ -57,7 +58,7 @@ void USART1_Config(void){
   GPIO_PinAFConfig(GPIOA,GPIO_PinSource9,GPIO_AF_USART1);
 	GPIO_PinAFConfig(GPIOA,GPIO_PinSource10,GPIO_AF_USART1);
 	
-  USART_InitStructure.USART_BaudRate = 115200;
+  USART_InitStructure.USART_BaudRate = baudrate;
 	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
 	USART_InitStructure.USART_StopBits = USART_StopBits_1;
 	USART_InitStructure.USART_Parity = USART_Parity_No ;
@@ -78,7 +79,7 @@ void USART1_Config(void){
 	USART_Cmd(USART1, ENABLE);
   USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
 	USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);
-}
+}*/
  
 void DMA1_Channel4_Config(void){
 	DMA_InitTypeDef  DMA_InitStructure; 

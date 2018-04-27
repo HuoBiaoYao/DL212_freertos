@@ -126,17 +126,9 @@ void DL212_EasyMode_Scan(void){
 		    i=sprintf(message,"d2 value:%.0f\r\n\r\n",sEMData.value[6]);USB_Send((unsigned char *)message,i); 
 		  } 
 	  }
-    DL212_EasyMode_ValueSend(); 
+    printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0],sEMData.value[1],sEMData.value[2],sEMData.value[3],sEMData.value[4],sEMData.value[5],sEMData.value[6]);
 	} 
-}
-
-void DL212_EasyMode_ValueSend(void){
-	unsigned int i=0;  
-	 
-	i = sprintf((char*)USART_DMA_TxBuf,"%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,\
-	            sEMData.value[0],sEMData.value[1],sEMData.value[2],sEMData.value[3],sEMData.value[4],sEMData.value[5],sEMData.value[6]);
-  USART1_DMA_Send(i);
-}
+} 
 
 void DL212_EasyMode_ValueDisplay(void){
 	unsigned char i; 

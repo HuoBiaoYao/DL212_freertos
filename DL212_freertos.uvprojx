@@ -186,7 +186,7 @@
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>1</useUlib>
+            <useUlib>0</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
@@ -334,7 +334,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32L1XX_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Libraries\CMSIS\Include;.\Libraries\STM32L1xx_StdPeriph_Driver\inc;.\SRC&amp;INH;.\SRC&amp;INH\FreeRTOS\include;.\SRC&amp;INH\FreeRTOS\portable\RVDS\ARM_CM3;.\SRC&amp;INH\FreeRTOS\portable\MemMang;.\SRC&amp;INH\SYSTEM;.\SRC&amp;INH\hal;.\SRC&amp;INH\hw;.\Libraries\STM32_USB-FS-Device_Driver\inc;.\SRC&amp;INH\USB;.\SRC&amp;INH\Abstract Data Type</IncludePath>
+              <IncludePath>.\Libraries\CMSIS\Include;.\Libraries\STM32L1xx_StdPeriph_Driver\inc;.\SRC&amp;INH;.\SRC&amp;INH\FreeRTOS\include;.\SRC&amp;INH\FreeRTOS\portable\RVDS\ARM_CM3;.\SRC&amp;INH\FreeRTOS\portable\MemMang;.\SRC&amp;INH\SYSTEM;.\SRC&amp;INH\hal;.\SRC&amp;INH\hw;.\Libraries\STM32_USB-FS-Device_Driver\inc;.\SRC&amp;INH\USB;.\SRC&amp;INH\Abstract Data Type;.\SRC&amp;INH\Modbus\include;.\SRC&amp;INH\Modbus\port</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -466,6 +466,96 @@
               <FileName>port.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\SRC&amp;INH\freertos\portable\RVDS\ARM_CM3\port.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>freemodbus</GroupName>
+          <Files>
+            <File>
+              <FileName>mb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mb.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbascii.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbascii.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbcrc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbcrc.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfunccoils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbfunccoils.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncdiag.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbfuncdiag.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncdisc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbfuncdisc.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncholding.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbfuncholding.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncinput.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbfuncinput.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbfuncother.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbfuncother.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbrtu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbrtu.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbtcp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbtcp.c</FilePath>
+            </File>
+            <File>
+              <FileName>mbutils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\source\mbutils.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>freemodbus_port</GroupName>
+          <Files>
+            <File>
+              <FileName>portevent.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\port\portevent.c</FilePath>
+            </File>
+            <File>
+              <FileName>portfunction.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\port\portfunction.c</FilePath>
+            </File>
+            <File>
+              <FileName>portserial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\port\portserial.c</FilePath>
+            </File>
+            <File>
+              <FileName>porttimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\Modbus\port\porttimer.c</FilePath>
             </File>
           </Files>
         </Group>

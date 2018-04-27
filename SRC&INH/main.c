@@ -8,6 +8,8 @@
 #include "DL212_easy_mode.h"
  #include "issort.h" 
  #include "math.h"
+/* Modbus Includes -----------------------------------------------------------*/
+#include "mb.h" 
  
 TaskHandle_t Task_Start_Handler; 
 TaskHandle_t Task1_Handler; 
@@ -22,10 +24,10 @@ SemaphoreHandle_t xSemaphore;
 int main(void){ 
 	unsigned int i; 
  
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);//设置系统中断优先级分组4	 	 
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //设置系统中断优先级分组4	 	 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
-	delay_init();               //延时函数初始化	  
-	delay_ms(3000);
+	delay_init(); //延时函数初始化 
+	delay_ms(3000); 
   
 	//创建开始任务
   xTaskCreate((TaskFunction_t )Task_Start,           //任务函数
@@ -48,8 +50,7 @@ void Task_Start(void *pvParameters){
   if(xQueue==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
 	  while(1);
 	}
-	My_USB_Init();  
-  USART1_Config();  
+	My_USB_Init(); 
 	psSE_FUNC->init(); 
 	psFram_Func->init(); 
   psFlash_Func->init();  
@@ -59,7 +60,7 @@ void Task_Start(void *pvParameters){
  // sDL212_State.battery = psSE_FUNC->bat_read();
  // psSE_FUNC->vref_read(); 
   I2C_RTC_Init();  
-  TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
+  //TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
   TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
   TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
 	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1)  
@@ -67,8 +68,7 @@ void Task_Start(void *pvParameters){
 	psSDI12_Func->init(0);
 	psSDI12_Func->init(1);
 	psC_RS232_Func->init(0,0);*/  
-	DL212_EasyMode_Init();
-		
+	
     xTaskCreate((TaskFunction_t )Task1,     	
                 (const char*    )"task for ...",   	
                 (uint16_t       )128, 
@@ -78,16 +78,16 @@ void Task_Start(void *pvParameters){
 
     xTaskCreate((TaskFunction_t )Task2,     
                 (const char*    )"task for ...",   
-                (uint16_t       )128, 
+                (uint16_t       )1024, 
                 (void*          )NULL,
                 (UBaseType_t    )1,
                 (TaskHandle_t*  )&Task2_Handler); 
-	 /* xTaskCreate((TaskFunction_t )Task3,     
+	  xTaskCreate((TaskFunction_t )Task3,     
                 (const char*    )"task for ...",   
-                (uint16_t       )128, 
+                (uint16_t       )1024, 
                 (void*          )NULL,
                 (UBaseType_t    )1,
-                (TaskHandle_t*  )&Task3_Handler); */  
+                (TaskHandle_t*  )&Task3_Handler); 
     vTaskDelete(Task_Start_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区
 }
@@ -117,34 +117,40 @@ void Task1(void *pvParameters){
 		}  
   } 
 } 
- 
+
+void Task2(void *pvParameters){
+	portTickType xLastWakeTime; 
+
+	/* Select either ASCII or RTU Mode. */
+  eMBInit( MB_RTU, 0x0A, 0, 115200, MB_PAR_NONE );
+  /* Enable the Modbus Protocol Stack. */
+  eMBEnable();
+  while(1){ 
+    ( void )eMBPoll();
+	  vTaskDelay(50);   
+	}
+}
+
 unsigned int DL212_EasyMode_Scan_Count=0; 
-void Task2(void *pvParameters){ 
+void Task3(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
 	
+	//DL212_EasyMode_Init();
 	xLastWakeTime = xTaskGetTickCount(); 
   while(1){ 
-  	vTaskDelay(1000); //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
-		printf("北四环路");
+    vTaskDelayUntil(&xLastWakeTime,xPeriod); 
 		if(DL212_EasyMode){ 
-      DL212_EasyMode_Scan(); 
+      //DL212_EasyMode_Scan(); 
       DL212_EasyMode_Scan_Count++; 
 		} 
 		else{ 
-		  vTaskSuspend(Task2_Handler); 
+		  vTaskSuspend(Task3_Handler); 
 		} 
 	} 
 } 
  
-void Task3(void *pvParameters){
-	portTickType xLastWakeTime; 
-
-  while(1){ 
-	  vTaskDelay(1000);   
-	}
-}
-
+ 
 
 void UserGpio_Config(void){
 	GPIO_InitTypeDef  GPIO_InitStructure;
