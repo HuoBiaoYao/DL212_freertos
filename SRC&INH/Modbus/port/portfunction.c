@@ -4,6 +4,10 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+uint16_t usRegInputStart = REG_INPUT_START;
+uint16_t usRegInputBuf[REG_INPUT_NREGS];
+uint16_t usRegHoldingStart = REG_HOLDING_START;
+uint16_t usRegHoldingBuf[REG_HOLDING_NREGS];
 /* Private function prototypes -----------------------------------------------*/
 eMBErrorCode eMBRegInputCB( UCHAR * pucRegBuffer, USHORT usAddress, USHORT usNRegs )
 {

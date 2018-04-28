@@ -20,11 +20,10 @@
 #define REG_HOLDING_NREGS 	8
 
 /* Private variables ---------------------------------------------------------*/
-static uint16_t usRegInputStart = REG_INPUT_START;
-static uint16_t usRegInputBuf[REG_INPUT_NREGS];
-static uint16_t usRegHoldingStart = REG_HOLDING_START;
-static uint16_t usRegHoldingBuf[REG_HOLDING_NREGS] = \
- {0x147b,0x3f8e,0x147b,0x400e,0x1eb8,0x4055,0x147b,0x408e};
+extern uint16_t usRegInputStart;
+extern uint16_t usRegInputBuf[REG_INPUT_NREGS];
+extern uint16_t usRegHoldingStart;
+extern uint16_t usRegHoldingBuf[REG_HOLDING_NREGS];
 
 
 #endif

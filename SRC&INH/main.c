@@ -10,6 +10,7 @@
  #include "math.h"
 /* Modbus Includes -----------------------------------------------------------*/
 #include "mb.h" 
+#include "portfunction.h" 
  
 TaskHandle_t Task_Start_Handler; 
 TaskHandle_t Task1_Handler; 
@@ -20,6 +21,7 @@ QueueHandle_t xQueue;
 SemaphoreHandle_t BinarySemaphore; 
 SemaphoreHandle_t BinarySemaphore_USB; 
 SemaphoreHandle_t xSemaphore; 
+
 
 int main(void){ 
 	unsigned int i; 
@@ -119,9 +121,15 @@ void Task1(void *pvParameters){
 } 
 
 void Task2(void *pvParameters){
+	unsigned int i;
 	portTickType xLastWakeTime; 
 
-	/* Select either ASCII or RTU Mode. */
+	for( i = 0; i < REG_HOLDING_NREGS; i++ ){
+    usRegHoldingBuf[i] = ( unsigned short )i;
+  }
+  for( i = 0; i < REG_INPUT_NREGS; i++ ){
+    usRegInputBuf[i] = ( unsigned short )i;
+  }
   eMBInit( MB_RTU, 0x0A, 0, 115200, MB_PAR_NONE );
   /* Enable the Modbus Protocol Stack. */
   eMBEnable();
