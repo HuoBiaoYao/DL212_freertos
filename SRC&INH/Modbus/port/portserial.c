@@ -25,7 +25,7 @@
 /* ----------------------- FreeRTOS includes --------------------------------*/
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "main.h"
 /* ----------------------- STM32 includes ----------------------------------*/
 #include "stm32l1xx.h"
 
@@ -183,6 +183,8 @@ BOOL xMBPortSerialGetByte( CHAR * pucByte )
 
 void MB_UART_IRQ_HANDLER(void)
 {
+	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
     if(USART_GetITStatus(MB_UART_DEV, USART_IT_TXE) != RESET)
     {
         //function eMBInit in mb.c pxMBFrameCBTransmitterEmpty = xMBRTUTransmitFSM
@@ -194,4 +196,5 @@ void MB_UART_IRQ_HANDLER(void)
         pxMBFrameCBByteReceived();
         USART_ClearITPendingBit(MB_UART_DEV, USART_IT_RXNE);
     }
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }

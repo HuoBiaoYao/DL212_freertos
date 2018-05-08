@@ -10,6 +10,7 @@
  #include "math.h"
 /* Modbus Includes -----------------------------------------------------------*/
 #include "mb.h" 
+#include "mbrtu.h"
 #include "portfunction.h" 
  
 TaskHandle_t Task_Start_Handler; 
@@ -19,9 +20,10 @@ TaskHandle_t Task3_Handler;
  
 QueueHandle_t xQueue; 
 SemaphoreHandle_t BinarySemaphore; 
-SemaphoreHandle_t BinarySemaphore_USB; 
+SemaphoreHandle_t BinarySemaphore_USB;  
 SemaphoreHandle_t xSemaphore; 
 
+TimerHandle_t OneShotTimer_Handle; 
 
 int main(void){ 
 	unsigned int i; 
@@ -30,7 +32,7 @@ int main(void){
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
 	delay_init(); //延时函数初始化 
 	delay_ms(3000); 
-  
+  //DBGMCU_Config(DBGMCU_SLEEP,ENABLE);
 	//创建开始任务
   xTaskCreate((TaskFunction_t )Task_Start,           //任务函数
               (const char*    )"start_task",         //任务名称
@@ -47,7 +49,7 @@ int main(void){
 void Task_Start(void *pvParameters){
   taskENTER_CRITICAL();           //进入临界区
   xQueue = xQueueCreate(10,sizeof(char));
-  BinarySemaphore_USB = xSemaphoreCreateBinary();
+  BinarySemaphore_USB = xSemaphoreCreateBinary(); 
  	xSemaphore = xSemaphoreCreateMutex(); 
   if(xQueue==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
 	  while(1);
@@ -70,11 +72,16 @@ void Task_Start(void *pvParameters){
 	psSDI12_Func->init(0);
 	psSDI12_Func->init(1);
 	psC_RS232_Func->init(0,0);*/  
+	OneShotTimer_Handle = xTimerCreate((const char*)"OneShotTimer",
+		                                 (TickType_t)200,//200ms
+	                                   (UBaseType_t)pdFALSE,
+	                                   (void*)2,
+															       (TimerCallbackFunction_t)OneShotCallback);
 	
-    xTaskCreate((TaskFunction_t )Task1,     	
-                (const char*    )"task for ...",   	
+    xTaskCreate((TaskFunction_t )Task1, 
+                (const char*    )"task for ...", 
                 (uint16_t       )128, 
-                (void*          )NULL,				
+                (void*          )NULL, 
                 (UBaseType_t    )1,	
                 (TaskHandle_t*  )&Task1_Handler);   
 
@@ -130,15 +137,15 @@ void Task2(void *pvParameters){
   for( i = 0; i < REG_INPUT_NREGS; i++ ){
     usRegInputBuf[i] = ( unsigned short )i;
   }
-  eMBInit( MB_RTU, 0x0A, 0, 115200, MB_PAR_NONE );
+  eMBInit( MB_RTU, 0x01, 0, 1115200, MB_PAR_NONE ); 
   /* Enable the Modbus Protocol Stack. */
   eMBEnable();
-  while(1){ 
-    ( void )eMBPoll();
-	  vTaskDelay(50);   
+	while(1){ 
+    eMBPoll();
+	  vTaskDelay(5);
 	}
-}
-
+} 
+ 
 unsigned int DL212_EasyMode_Scan_Count=0; 
 void Task3(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
@@ -157,9 +164,22 @@ void Task3(void *pvParameters){
 		} 
 	} 
 } 
- 
- 
 
+int idlehookcnt=0; 
+void vApplicationIdleHook(void){
+  idlehookcnt++; 
+}
+
+int tickhookcnt=0; 
+void vApplicationTickHook(void){
+  tickhookcnt++; 
+}
+
+void OneShotCallback(TimerHandle_t xTimer){ 
+	BaseType_t xHigherPriorityTaskWoken, xResult;
+	
+} 
+ 
 void UserGpio_Config(void){
 	GPIO_InitTypeDef  GPIO_InitStructure;
 	

@@ -64,7 +64,7 @@ typedef enum
     STATE_TX_IDLE,              /*!< Transmitter is in idle state. */
     STATE_TX_XMIT               /*!< Transmitter is in transfer state. */
 } eMBSndState;
-
+ 
 /* ----------------------- Static variables ---------------------------------*/
 static volatile eMBSndState eSndState;
 static volatile eMBRcvState eRcvState;
