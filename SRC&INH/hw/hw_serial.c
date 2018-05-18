@@ -16,11 +16,11 @@ C1------->RX1---PA3---USART2_RX
 C2<-------TX2---PC12---UART5_TX
 C2------->RX2---PD2----UART5_RX*/
  
-unsigned char USART_DMA_TxBuf[1]; 
-unsigned char USART_DMA_RxBuf[1];  
-/*usart1在portserial文件中实现
+unsigned char USART_DMA_TxBuf[256]; 
+unsigned char USART_DMA_RxBuf[256];  
+
 char USART1_DMA_Send_State; 
-int  USART1_DMA_Rec_Cnt; 
+unsigned int  USART1_DMA_Rec_Cnt; 
 
 void USART1_DMA_Send(unsigned short int lenth){ 
 	int timeout=100000; 
@@ -71,7 +71,7 @@ void USART1_Config(unsigned int baudrate){
 	USART_ITConfig(USART1,USART_IT_IDLE,ENABLE);
 	
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;                
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 7;     
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 6;     
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0; 
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;           
 	NVIC_Init(&NVIC_InitStructure);
@@ -79,7 +79,7 @@ void USART1_Config(unsigned int baudrate){
 	USART_Cmd(USART1, ENABLE);
   USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
 	USART_DMACmd(USART1, USART_DMAReq_Rx, ENABLE);
-}*/
+}
  
 void DMA1_Channel4_Config(void){
 	DMA_InitTypeDef  DMA_InitStructure; 
@@ -97,7 +97,7 @@ void DMA1_Channel4_Config(void){
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (unsigned int)(&USART1->DR);
   DMA_InitStructure.DMA_MemoryBaseAddr = (unsigned int)USART_DMA_TxBuf;
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-	DMA_InitStructure.DMA_BufferSize = 99;
+	DMA_InitStructure.DMA_BufferSize = 256;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
@@ -119,7 +119,7 @@ void DMA1_Channel5_Config(void){
   DMA_InitStructure.DMA_PeripheralBaseAddr = (unsigned int)(&USART1->DR);
 	DMA_InitStructure.DMA_MemoryBaseAddr = (unsigned int)USART_DMA_RxBuf;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
-	DMA_InitStructure.DMA_BufferSize = 99;
+	DMA_InitStructure.DMA_BufferSize = 256;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;

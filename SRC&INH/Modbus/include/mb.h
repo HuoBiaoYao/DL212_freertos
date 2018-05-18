@@ -65,8 +65,7 @@ PR_BEGIN_EXTERN_C
  * }
  * \endcode
  */
-
-/* ----------------------- Defines ------------------------------------------*/
+ /* ----------------------- Defines ------------------------------------------*/
 
 /*! \ingroup modbus
  * \brief Use the default Modbus TCP port (502)
@@ -410,7 +409,9 @@ eMBErrorCode    eMBRegCoilsCB( UCHAR * pucRegBuffer, USHORT usAddress,
  */
 eMBErrorCode    eMBRegDiscreteCB( UCHAR * pucRegBuffer, USHORT usAddress,
                                   USHORT usNDiscrete );
-
+extern UCHAR    ucMBAddress; 
+extern xMBFunctionHandler xFuncHandlers[];
+extern eMBMode  eMBCurrentMode;
 #ifdef __cplusplus
 PR_END_EXTERN_C
 #endif

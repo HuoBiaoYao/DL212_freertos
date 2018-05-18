@@ -417,6 +417,11 @@
               <FileType>1</FileType>
               <FilePath>.\SRC&amp;INH\issort.c</FilePath>
             </File>
+            <File>
+              <FileName>usart_idle_dma_modbus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\usart_idle_dma_modbus.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

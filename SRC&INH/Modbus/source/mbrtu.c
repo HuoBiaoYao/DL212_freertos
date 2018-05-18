@@ -71,8 +71,8 @@ static volatile eMBRcvState eRcvState;
 
 volatile UCHAR  ucRTUBuf[MB_SER_PDU_SIZE_MAX];
 
-static volatile UCHAR *pucSndBufferCur;
-static volatile USHORT usSndBufferCount;
+volatile UCHAR *pucSndBufferCur;
+volatile USHORT usSndBufferCount;
 
 static volatile USHORT usRcvBufferPos;
 

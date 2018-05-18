@@ -59,8 +59,8 @@
 
 /* ----------------------- Static variables ---------------------------------*/
 
-static UCHAR    ucMBAddress;
-static eMBMode  eMBCurrentMode;
+UCHAR    ucMBAddress;
+eMBMode  eMBCurrentMode;
 
 static enum
 {
@@ -92,7 +92,7 @@ BOOL( *pxMBFrameCBTransmitFSMCur ) ( void );
 /* An array of Modbus functions handlers which associates Modbus function
  * codes with implementing functions.
  */
-static xMBFunctionHandler xFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
+xMBFunctionHandler xFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 #if MB_FUNC_OTHER_REP_SLAVEID_ENABLED > 0
     {MB_FUNC_OTHER_REPORT_SLAVEID, eMBFuncReportSlaveID},
 #endif

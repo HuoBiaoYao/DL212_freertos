@@ -2,13 +2,13 @@
 #define __HW_SERIAL_H  
 #include "stm32l1xx_usart.h"
 
-/*extern char USART1_DMA_Send_State;
-extern int USART1_DMA_Rec_Cnt;
+extern char USART1_DMA_Send_State;
+extern unsigned int USART1_DMA_Rec_Cnt;
 extern unsigned char USART_DMA_TxBuf[];
 extern unsigned char USART_DMA_RxBuf[];
  
 void USART1_DMA_Send(unsigned short int lenth);
-void USART1_Config(unsigned int baudrate);*/
+void USART1_Config(unsigned int baudrate);
 void DMA1_Channel4_Config(void);
 void DMA1_Channel5_Config(void);
 

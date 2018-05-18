@@ -524,7 +524,8 @@ void xPortSysTickHandler( void )
 			if( xModifiableIdleTime > 0 )
 			{
 				__dsb( portSY_FULL_READ_WRITE );
-				__wfi();
+				PWR_EnterSleepMode(PWR_Regulator_LowPower,PWR_SLEEPEntry_WFI); 
+				//__wfi();
 				__isb( portSY_FULL_READ_WRITE );
 			}
 			configPOST_SLEEP_PROCESSING( xExpectedIdleTime );

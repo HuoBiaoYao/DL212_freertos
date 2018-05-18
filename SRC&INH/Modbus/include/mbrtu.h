@@ -45,6 +45,9 @@ BOOL            xMBRTUTransmitFSM( void );
 BOOL            xMBRTUTimerT15Expired( void );
 BOOL            xMBRTUTimerT35Expired( void );
 
+extern volatile UCHAR *pucSndBufferCur;
+extern volatile USHORT usSndBufferCount;
+extern volatile UCHAR  ucRTUBuf[ ];
 #ifdef __cplusplus
 PR_END_EXTERN_C
 #endif

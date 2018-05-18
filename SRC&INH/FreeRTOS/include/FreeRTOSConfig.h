@@ -90,7 +90,7 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1                       //1启用特殊方法来选择下一个要运行的任务
                                                                         //一般是硬件计算前导零指令，如果所使用的
                                                                         //MCU没有这些硬件指令的话此宏应该设置为0！
-#define configUSE_TICKLESS_IDLE					0                       //1启用低功耗tickless模式
+#define configUSE_TICKLESS_IDLE					1                       //1启用低功耗tickless模式
 #define configUSE_QUEUE_SETS					1                       //为1时启用队列
 #define configCPU_CLOCK_HZ						(SystemCoreClock)       //CPU频率
 #define configTICK_RATE_HZ						(1000)                  //时钟节拍频率，这里设置为1000，周期就是1ms
@@ -122,7 +122,7 @@
 /***************************************************************************************************************/
 /*                                FreeRTOS与钩子函数有关的配置选项                                              */
 /***************************************************************************************************************/
-#define configUSE_IDLE_HOOK						1                       //1，使用空闲钩子；0，不使用
+#define configUSE_IDLE_HOOK						0                       //1，使用空闲钩子；0，不使用
 #define configUSE_TICK_HOOK						0                       //1，使用时间片钩子；0，不使用
 
 /***************************************************************************************************************/

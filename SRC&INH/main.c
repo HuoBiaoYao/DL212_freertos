@@ -9,9 +9,7 @@
  #include "issort.h" 
  #include "math.h"
 /* Modbus Includes -----------------------------------------------------------*/
-#include "mb.h" 
-#include "mbrtu.h"
-#include "portfunction.h" 
+#include "usart_idle_dma_modbus.h"   
  
 TaskHandle_t Task_Start_Handler; 
 TaskHandle_t Task1_Handler; 
@@ -19,7 +17,7 @@ TaskHandle_t Task2_Handler;
 TaskHandle_t Task3_Handler; 
  
 QueueHandle_t xQueue; 
-SemaphoreHandle_t BinarySemaphore; 
+SemaphoreHandle_t BinarySemaphore_MB; 
 SemaphoreHandle_t BinarySemaphore_USB;  
 SemaphoreHandle_t xSemaphore; 
 
@@ -31,7 +29,7 @@ int main(void){
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //设置系统中断优先级分组4	 	 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
 	delay_init(); //延时函数初始化 
-	delay_ms(3000); 
+	//delay_ms(3000); 
   //DBGMCU_Config(DBGMCU_SLEEP,ENABLE);
 	//创建开始任务
   xTaskCreate((TaskFunction_t )Task_Start,           //任务函数
@@ -49,9 +47,10 @@ int main(void){
 void Task_Start(void *pvParameters){
   taskENTER_CRITICAL();           //进入临界区
   xQueue = xQueueCreate(10,sizeof(char));
+	BinarySemaphore_MB = xSemaphoreCreateBinary(); 
   BinarySemaphore_USB = xSemaphoreCreateBinary(); 
  	xSemaphore = xSemaphoreCreateMutex(); 
-  if(xQueue==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
+  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
 	  while(1);
 	}
 	My_USB_Init(); 
@@ -77,7 +76,7 @@ void Task_Start(void *pvParameters){
 	                                   (UBaseType_t)pdFALSE,
 	                                   (void*)2,
 															       (TimerCallbackFunction_t)OneShotCallback);
-	
+	//sMBSlave.init(115200);
     xTaskCreate((TaskFunction_t )Task1, 
                 (const char*    )"task for ...", 
                 (uint16_t       )128, 
@@ -131,18 +130,15 @@ void Task2(void *pvParameters){
 	unsigned int i;
 	portTickType xLastWakeTime; 
 
-	for( i = 0; i < REG_HOLDING_NREGS; i++ ){
-    usRegHoldingBuf[i] = ( unsigned short )i;
-  }
-  for( i = 0; i < REG_INPUT_NREGS; i++ ){
-    usRegInputBuf[i] = ( unsigned short )i;
-  }
-  eMBInit( MB_RTU, 0x01, 0, 1115200, MB_PAR_NONE ); 
-  /* Enable the Modbus Protocol Stack. */
-  eMBEnable();
+//for( i = 0; i < REG_HOLDING_NREGS; i++ ){usRegHoldingBuf[i] = ( unsigned short )i;}
+//for( i = 0; i < REG_INPUT_NREGS; i++ ){usRegInputBuf[i] = ( unsigned short )i;}
+	sMBSlave.init(115200);
+	//MB_Address = 1;
+  //eMBInit( MB_RTU, 0x01, 0, 9600, MB_PAR_NONE ); 
+  //eMBEnable();
 	while(1){ 
-    eMBPoll();
-	  vTaskDelay(5);
+    //eMBPoll();
+		sMBSlave.task();
 	}
 } 
  

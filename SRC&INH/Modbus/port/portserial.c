@@ -45,7 +45,7 @@
 #define MB_UART_RX_PORT         ( GPIOA )
 #define MB_UART_RX_PIN          ( GPIO_Pin_10 )
 #define MB_UART_IRQ_CH          ( USART1_IRQn )
-#define MB_UART_IRQ_HANDLER     ( USART1_IRQHandler )
+//#define MB_UART_IRQ_HANDLER     ( USART1_IRQHandler )
 #define MB_IRQ_PRIORITY         ( 0 )
 
 /* ----------------------- Start implementation -----------------------------*/
