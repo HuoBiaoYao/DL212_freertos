@@ -331,7 +331,7 @@
             <v6Lto>0</v6Lto>
             <v6WtE>0</v6WtE>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--c99</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32L1XX_HD</Define>
               <Undefine></Undefine>
               <IncludePath>.\Libraries\CMSIS\Include;.\Libraries\STM32L1xx_StdPeriph_Driver\inc;.\SRC&amp;INH;.\SRC&amp;INH\FreeRTOS\include;.\SRC&amp;INH\FreeRTOS\portable\RVDS\ARM_CM3;.\SRC&amp;INH\FreeRTOS\portable\MemMang;.\SRC&amp;INH\SYSTEM;.\SRC&amp;INH\hal;.\SRC&amp;INH\hw;.\Libraries\STM32_USB-FS-Device_Driver\inc;.\SRC&amp;INH\USB;.\SRC&amp;INH\Abstract Data Type;.\SRC&amp;INH\Modbus\include;.\SRC&amp;INH\Modbus\port</IncludePath>

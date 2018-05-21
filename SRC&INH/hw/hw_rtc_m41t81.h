@@ -31,7 +31,7 @@
 #define M41T81_WRITEADDR 0xd0
 #define M41T81_READADDR  0xd1
 
-__inline int TimeConv(char time){
+static __inline int TimeConv(char time){
   int time1,time2;
     
   time1 = (int)time & 0x0000000f;

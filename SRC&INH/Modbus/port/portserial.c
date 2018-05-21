@@ -128,8 +128,8 @@ BOOL xMBPortSerialInit( UCHAR ucPort, ULONG ulBaudRate, UCHAR ucDataBits, eMBPar
 
         // Configure the IEC for the UART interrupts. 
         NVIC_InitStruct.NVIC_IRQChannel = MB_UART_IRQ_CH;
-        NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 7;
-        NVIC_InitStruct.NVIC_IRQChannelSubPriority = MB_IRQ_PRIORITY;
+        NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 6;
+        NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0;
         NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
         NVIC_Init(&NVIC_InitStruct);
     }
@@ -184,11 +184,13 @@ BOOL xMBPortSerialGetByte( CHAR * pucByte )
 void MB_UART_IRQ_HANDLER(void)
 {
 	  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	
+	  
+	  MB_Ctrl = 1;
     if(USART_GetITStatus(MB_UART_DEV, USART_IT_TXE) != RESET)
     {
         //function eMBInit in mb.c pxMBFrameCBTransmitterEmpty = xMBRTUTransmitFSM
         pxMBFrameCBTransmitterEmpty();
+			  USART_ClearITPendingBit(MB_UART_DEV, USART_IT_TXE);
     }
     if(USART_GetITStatus(MB_UART_DEV, USART_IT_RXNE) != RESET)
     {
@@ -196,5 +198,6 @@ void MB_UART_IRQ_HANDLER(void)
         pxMBFrameCBByteReceived();
         USART_ClearITPendingBit(MB_UART_DEV, USART_IT_RXNE);
     }
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	//	xSemaphoreGiveFromISR(BinarySemaphore_Modbus,&xHigherPriorityTaskWoken);
+	//	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }

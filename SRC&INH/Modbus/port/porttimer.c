@@ -61,8 +61,8 @@ BOOL xMBPortTimersInit( USHORT usTim1Timerout50us )
     vMBPortTimersDisable();
     /* Setting the timer nvic */
     NVIC_InitStruct.NVIC_IRQChannel = MB_TIMER_IRQ_CH;
-    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStruct.NVIC_IRQChannelSubPriority = MB_IRQ_PRIORITY;
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 6;
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0;
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStruct);
 
