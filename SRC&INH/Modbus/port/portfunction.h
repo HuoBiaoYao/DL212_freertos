@@ -15,9 +15,9 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define REG_INPUT_START     0x0001
-#define REG_INPUT_NREGS     8
+#define REG_INPUT_NREGS     14
 #define REG_HOLDING_START 	0x0001
-#define REG_HOLDING_NREGS 	8
+#define REG_HOLDING_NREGS 	1
 
 /* Private variables ---------------------------------------------------------*/
 extern uint16_t usRegInputStart;

@@ -125,8 +125,10 @@ void DL212_EasyMode_Scan(void){
 		    i=sprintf(message,"d1 value:%.0f\r\n",sEMData.value[5]);USB_Send((unsigned char *)message,i); 
 		    i=sprintf(message,"d2 value:%.0f\r\n\r\n",sEMData.value[6]);USB_Send((unsigned char *)message,i); 
 		  } 
+			if(0 == sEMData.usart_mode){
+		    printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0],sEMData.value[1],sEMData.value[2],sEMData.value[3],sEMData.value[4],sEMData.value[5],sEMData.value[6]);
+			}
 	  }
-    printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0],sEMData.value[1],sEMData.value[2],sEMData.value[3],sEMData.value[4],sEMData.value[5],sEMData.value[6]);
 	} 
 } 
 
@@ -233,7 +235,7 @@ void DL212_EasyMode_Config(void){
 	
 	if(0 == strncmp("DL212 easy mode run",(const char*)(sUSB_Para.rx_buf),19) ||
 		 0 == strncmp("dl212 easy mode run",(const char*)(sUSB_Para.rx_buf),19)){ 
-	  DL212_EasyMode = 1; 	 
+	  DL212_EasyMode = 1;
 		vTaskResume(Task2_Handler);
 		DL212_EasyMode_Init();
     i=sprintf(message,"DL212简易模式运行中...\r\n\r\n");USB_Send((unsigned char *)message,i); 	 
@@ -253,6 +255,7 @@ void DL212_EasyMode_Config(void){
 		P_SW_Option=C1_Option=C2_Option=F_Mea_Option=1;
     P_SW_Dest=0,C1_Dest=1,C2_Dest=2,F_Mea_Dest=3;
 		sUSB_Para.rec_len = 0; 
+			 
 		//step 1.
 	  i=sprintf(message,"是否恢复缺省配置[y/n](n):\r\n\r\n");USB_Send((unsigned char *)message,i); 
 		while(timeout++ < 0xF0000000){ 
@@ -261,7 +264,8 @@ void DL212_EasyMode_Config(void){
 			  timeout = 0; 
         if(0==strncmp("Y",(const char*)(sUSB_Para.rx_buf),1) || 0==strncmp("y",(const char*)(sUSB_Para.rx_buf),1)){ 
 					memset(&sEMData,0,sizeof(sEMData)); 
-					sEMData.scan_intvl=3,sEMData.addr_0='A',sEMData.addr_1='A'; 
+					sEMData.scan_intvl=5,sEMData.addr_0='A',sEMData.addr_1='A'; 
+					sEMData.usart_baudrate=115200,sEMData.usart_mode=0,sEMData.modbus_address=1;
           EEPROM_Write((unsigned char*)&sEMData,EEPROM_BANK_START_ADDR,sizeof(sEMData)); 
 					i=sprintf(message,"已恢复缺省配置,DL212简易模式运行中...\r\n\r\n");USB_Send((unsigned char *)message,i);					
 				  return; 
@@ -282,6 +286,31 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 2.
+		i=sprintf(message,"\r\n设备标识(%c%c):\r\n\r\n",sEMData.addr_0,sEMData.addr_1);USB_Send((unsigned char *)message,i);
+		while(timeout++ < 0xF0000000){
+		  CDC_Receive_DATA(); 
+		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
+				timeout = 0; 
+				if(0==isalnum(*sUSB_Para.rx_buf) || 0==isalnum(*(sUSB_Para.rx_buf+1)) ||  4!=sUSB_Para.rec_len){
+				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"\r\n设备标识(%c%c)\r\n\r\n",sEMData.addr_0,sEMData.addr_1);USB_Send((unsigned char *)message,i);
+				}
+        else{
+					 sEMData.addr_0=*(sUSB_Para.rx_buf),sEMData.addr_1=*(sUSB_Para.rx_buf+1);
+           EEPROM_Write((unsigned char*)&sEMData.addr_0,((unsigned int)&sEMData.addr_0-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.addr_0)); 
+           EEPROM_Write((unsigned char*)&sEMData.addr_1,((unsigned int)&sEMData.addr_1-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.addr_1)); 
+  			   i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
+					 break;
+				}	 
+				sUSB_Para.rec_len = 0;
+		  } 
+		} 
+		sUSB_Para.rec_len = 0; 
+		if(timeout){
+		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
+			return;
+		}
+		//step 3.
 		i=sprintf(message,"测量时间间隔(%d)(秒):\r\n\r\n",sEMData.scan_intvl);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -306,7 +335,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return; 
 		} 
-		//step 3.
+		//step 4.
 		i=sprintf(message,"V1端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v1_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -342,7 +371,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 4.
+		//step 5.
 		i=sprintf(message,"V2端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v2_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -378,7 +407,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 5.
+		//step 6.
 		i=sprintf(message,"V3端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v3_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -414,7 +443,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 6.
+		//step 7.
 		i=sprintf(message,"V4端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v4_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -450,7 +479,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 7.
+		//step 8.
 		i=sprintf(message,"F1端口设置[0.数字量测量1.禁用](%d):\r\n\r\n",sEMData.f1_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -483,7 +512,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 8. 
+		//step 9. 
 		i=sprintf(message,"D1端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sEMData.d1_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -520,7 +549,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 9.
+		//step 10.
 		i=sprintf(message,"D2端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sEMData.d2_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -557,7 +586,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 10.
+		//step 11.
 		i=sprintf(message,"SW12-1端口设置[0.禁用1.使能](%d):\r\n\r\n",sEMData.sw12_1_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -582,7 +611,7 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 11.
+		//step 12.
 		i=sprintf(message,"SW12-2端口设置[0.禁用1.使能](%d):\r\n\r\n",sEMData.sw12_2_func);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
@@ -607,32 +636,84 @@ void DL212_EasyMode_Config(void){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
-		//step 12.
-		i=sprintf(message,"\r\n设备标识(%c%c):\r\n\r\n",sEMData.addr_0,sEMData.addr_1);USB_Send((unsigned char *)message,i);
-		while(timeout++ < 0xF0000000){
-		  CDC_Receive_DATA(); 
+		
+		//step 13.
+		i=sprintf(message,"\r\n串口波特率(%d):\r\n\r\n",sEMData.usart_baudrate);USB_Send((unsigned char *)message,i);
+    while(timeout++ < 0xF0000000){
+		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
-				timeout = 0; 
-				if(0==isalnum(*sUSB_Para.rx_buf) || 0==isalnum(*(sUSB_Para.rx_buf+1)) ||  4!=sUSB_Para.rec_len){
-				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"\r\n设备标识(%c%c)\r\n\r\n",sEMData.addr_0,sEMData.addr_1);USB_Send((unsigned char *)message,i);
+				timeout = 0;
+			  i = atoi((const char*)sUSB_Para.rx_buf);
+				if(1200==i || 2400==i || 4800==i || 9600==i || 14400==i || 19200==i || 38400==i || 57600==i || 115200==i){
+					sEMData.usart_baudrate = i;
+					USART1_Config(i);
+					EEPROM_Write((unsigned char*)&sEMData.usart_baudrate,((unsigned int)&sEMData.usart_baudrate-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.usart_baudrate)); 
+				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
+					break;
 				}
-        else{
-					 sEMData.addr_0=*(sUSB_Para.rx_buf),sEMData.addr_1=*(sUSB_Para.rx_buf+1);
-           EEPROM_Write((unsigned char*)&sEMData.addr_0,((unsigned int)&sEMData.addr_0-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.addr_0)); 
-           EEPROM_Write((unsigned char*)&sEMData.addr_1,((unsigned int)&sEMData.addr_1-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.addr_1)); 
-  			   i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
-					 i=sprintf(message,"配置完成,DL212简易模式运行中...\r\n\r\n");USB_Send((unsigned char *)message,i);
-					 break;
-				}	 
-				sUSB_Para.rec_len = 0;
-		  } 
+				else{
+				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
+       		i=sprintf(message,"\r\n串口波特率(%d):\r\n\r\n",sEMData.usart_baudrate);USB_Send((unsigned char *)message,i);
+				} 
+				sUSB_Para.rec_len = 0; 
+			} 
 		} 
 		sUSB_Para.rec_len = 0; 
 		if(timeout){
 		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
 			return;
 		}
+		//step 14.
+		i=sprintf(message,"\r\nmodbus从机地址设置(%d):\r\n\r\n",sEMData.modbus_address);USB_Send((unsigned char *)message,i);
+    while(timeout++ < 0xF0000000){
+		  CDC_Receive_DATA();
+		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
+				timeout = 0;
+			  i = atoi((const char*)sUSB_Para.rx_buf);
+				if(i>=1 && i<=247){
+					sEMData.modbus_address = i; 
+					EEPROM_Write((unsigned char*)&sEMData.modbus_address,((unsigned int)&sEMData.modbus_address-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.usart_mode)); 
+				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
+					break;
+				}
+				else{
+				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
+	      	i=sprintf(message,"\r\nmodbus从机地址设置(%d):\r\n\r\n",sEMData.modbus_address);USB_Send((unsigned char *)message,i);
+				} 
+				sUSB_Para.rec_len = 0; 
+			} 
+		} 
+		sUSB_Para.rec_len = 0; 
+		if(timeout){
+		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
+			return;
+		}
+		//step 15.
+		i=sprintf(message,"\r\n串口模式选择[0.ascii自动发送1.modbus模式](%d):\r\n\r\n",sEMData.usart_mode);USB_Send((unsigned char *)message,i);
+    while(timeout++ < 0xF0000000){
+		  CDC_Receive_DATA();
+		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
+				timeout = 0;
+			  i = atoi((const char*)sUSB_Para.rx_buf);
+				if(0==i || 1==i){
+					sEMData.usart_mode = i;
+					EEPROM_Write((unsigned char*)&sEMData.usart_mode,((unsigned int)&sEMData.usart_mode-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.usart_mode)); 
+				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
+			  	i=sprintf(message,"配置完成,DL212简易模式运行中...\r\n\r\n");USB_Send((unsigned char *)message,i);
+					break;
+				}
+				else{
+				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"\r\n串口模式选择[0.ascii自动发送1.modbus](%d):\r\n\r\n",sEMData.usart_mode);USB_Send((unsigned char *)message,i);
+				} 
+				sUSB_Para.rec_len = 0; 
+			} 
+		} 
+		sUSB_Para.rec_len = 0; 
+		if(timeout){
+		  i=sprintf(message,"配置超时,如需配置请重新进入配置模式\r\n\r\n");USB_Send((unsigned char *)message,i);
+			return;
+		} 
 	} 
 	else{
 	  return;

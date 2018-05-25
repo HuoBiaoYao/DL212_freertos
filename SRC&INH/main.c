@@ -10,6 +10,7 @@
  #include "math.h"
 /* Modbus Includes -----------------------------------------------------------*/
 #include "usart_idle_dma_modbus.h"   
+#include "portfunction.h"
  
 TaskHandle_t Task_Start_Handler; 
 TaskHandle_t Task1_Handler; 
@@ -63,7 +64,7 @@ void Task_Start(void *pvParameters){
  // sDL212_State.battery = psSE_FUNC->bat_read();
  // psSE_FUNC->vref_read(); 
   I2C_RTC_Init();  
-  //TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
+  TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
   TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
   TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
 	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1)  
@@ -76,15 +77,14 @@ void Task_Start(void *pvParameters){
 	                                   (UBaseType_t)pdFALSE,
 	                                   (void*)2,
 															       (TimerCallbackFunction_t)OneShotCallback);
-	//sMBSlave.init(115200);
     xTaskCreate((TaskFunction_t )Task1, 
                 (const char*    )"task for ...", 
                 (uint16_t       )128, 
                 (void*          )NULL, 
                 (UBaseType_t    )1,	
-                (TaskHandle_t*  )&Task1_Handler);   
+                (TaskHandle_t*  )&Task1_Handler); 
 
-    xTaskCreate((TaskFunction_t )Task2,     
+    xTaskCreate((TaskFunction_t )Task2,
                 (const char*    )"task for ...",   
                 (uint16_t       )1024, 
                 (void*          )NULL,
@@ -100,11 +100,30 @@ void Task_Start(void *pvParameters){
     taskEXIT_CRITICAL();            //ÍË³öÁÙ½çÇø
 }
 
-
+unsigned int DL212_EasyMode_Scan_Count=0; 
 void Task1(void *pvParameters){ 
-	BaseType_t err=pdFALSE;
+	TickType_t xLastWakeTime; 
+	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
+	
+	DL212_EasyMode_Init();
+	xLastWakeTime = xTaskGetTickCount(); 
+  while(1){ 
+    vTaskDelayUntil(&xLastWakeTime,xPeriod); 
+		if(DL212_EasyMode){ 
+      DL212_EasyMode_Scan(); 
+      DL212_EasyMode_Scan_Count++; 
+			memcpy(usRegInputBuf,sEMData.value,28);
+		} 
+		else{ 
+		  vTaskSuspend(Task3_Handler); 
+		} 
+	} 
+} 
+
+void Task2(void *pvParameters){ 
+	BaseType_t err=pdFALSE; 
  
-  while(1){
+  while(1){ 
     if(USB_DETECT()){ 
       if(bDeviceState == CONFIGURED){ 
         CDC_Receive_DATA(); 
@@ -116,50 +135,41 @@ void Task1(void *pvParameters){
         } 
       } 
 	  } 
-		else{
+		else{ 
 		  if(BinarySemaphore_USB != NULL){ 
         if(xSemaphoreTake(BinarySemaphore_USB,portMAX_DELAY) == pdTRUE){ 
-	        SystemInit();
-				}
-			}				
-		}  
+	        SystemInit(); 
+				} 
+			} 
+		} 
   } 
 } 
-
-void Task2(void *pvParameters){
-	unsigned int i;
+ 
+void Task3(void *pvParameters){
 	portTickType xLastWakeTime; 
-
-//for( i = 0; i < REG_HOLDING_NREGS; i++ ){usRegHoldingBuf[i] = ( unsigned short )i;}
-//for( i = 0; i < REG_INPUT_NREGS; i++ ){usRegInputBuf[i] = ( unsigned short )i;}
-	sMBSlave.init(115200);
-	//MB_Address = 1;
-  //eMBInit( MB_RTU, 0x01, 0, 9600, MB_PAR_NONE ); 
-  //eMBEnable();
+  unsigned char i=0;
+	
+	while(i<=10 && 0==sEMData.usart_baudrate){
+	  i++;
+		vTaskDelay(100);
+	}
+	sMBSlave.init(sEMData.usart_baudrate); 
 	while(1){ 
-    //eMBPoll();
-		sMBSlave.task();
+	  if(BinarySemaphore_MB != NULL){ 
+      if(xSemaphoreTake(BinarySemaphore_MB,portMAX_DELAY) == pdTRUE){ 
+				if(1 == sEMData.usart_mode){
+					ucMBAddress = sEMData.modbus_address;
+				  sMBSlave.poll();
+				}
+        else{
+				  memset(USART_DMA_RxBuf,0,USART1_DMA_Rec_Cnt);
+				  USART1_DMA_Rec_Cnt =0;
+				}
+	    }
+    }
 	}
 } 
  
-unsigned int DL212_EasyMode_Scan_Count=0; 
-void Task3(void *pvParameters){ 
-	TickType_t xLastWakeTime; 
-	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
-	
-	//DL212_EasyMode_Init();
-	xLastWakeTime = xTaskGetTickCount(); 
-  while(1){ 
-    vTaskDelayUntil(&xLastWakeTime,xPeriod); 
-		if(DL212_EasyMode){ 
-      //DL212_EasyMode_Scan(); 
-      DL212_EasyMode_Scan_Count++; 
-		} 
-		else{ 
-		  vTaskSuspend(Task3_Handler); 
-		} 
-	} 
-} 
 
 int idlehookcnt=0; 
 void vApplicationIdleHook(void){

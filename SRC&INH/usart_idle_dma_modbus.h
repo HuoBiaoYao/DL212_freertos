@@ -28,7 +28,6 @@
  
 struct MB_FUNCTION{
   void (*init)(unsigned int baudrate); 
-	void (*task)(void);
 	void (*poll)(void);
 	void (*send)(UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength );
 };

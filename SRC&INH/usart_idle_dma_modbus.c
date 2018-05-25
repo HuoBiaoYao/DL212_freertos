@@ -7,18 +7,10 @@ unsigned char MB_Address=1;
 
 struct MB_FUNCTION sMBSlave={
   USART1_Config,
-	MB_Slave_Task,
 	MB_Slave_Poll,
 	MB_Slave_Send
 };
  
-void MB_Slave_Task(void){
-  if(BinarySemaphore_MB != NULL){ 
-    if(xSemaphoreTake(BinarySemaphore_MB,portMAX_DELAY) == pdTRUE){ 
-       sMBSlave.poll();
-		}
-	}
-}
  
 void MB_Slave_Poll(void){
 	static UCHAR   *ucMBFrame;
@@ -33,28 +25,29 @@ void MB_Slave_Poll(void){
 	  usLength = USART1_DMA_Rec_Cnt-3;
 	  ucMBFrame = (unsigned char*)ucRTUBuf+1; 
 	  ucRcvAddress   = *(ucRTUBuf);
-	  ucFunctionCode = *(ucMBFrame+MB_PDU_FUNC_OFF);
-    eException = MB_EX_ILLEGAL_FUNCTION; 
-    for( i = 0; i < MB_FUNC_HANDLERS_MAX; i++ ){
-      //No more function handlers registered. Abort.
-      if( xFuncHandlers[i].ucFunctionCode == 0 ){
-        break;
+    if((ucRcvAddress == ucMBAddress) || (ucRcvAddress==MB_ADDRESS_BROADCAST)){
+	    ucFunctionCode = *(ucMBFrame+MB_PDU_FUNC_OFF);
+      eException = MB_EX_ILLEGAL_FUNCTION; 
+      for( i = 0; i < MB_FUNC_HANDLERS_MAX; i++ ){
+        //No more function handlers registered. Abort.
+        if( xFuncHandlers[i].ucFunctionCode == 0 ){
+          break;
+        }
+        else if( xFuncHandlers[i].ucFunctionCode == ucFunctionCode ){
+          eException = xFuncHandlers[i].pxHandler( ucMBFrame, &usLength );
+          break;
+        }
       }
-      else if( xFuncHandlers[i].ucFunctionCode == ucFunctionCode ){
-        eException = xFuncHandlers[i].pxHandler( ucMBFrame, &usLength );
-        break;
-      }
-    }
-    if( ucRcvAddress != MB_ADDRESS_BROADCAST ) {        
-      if( eException != MB_EX_NONE ) {        
-        //An exception occured. Build an error frame.        
-        usLength = 0;        
-        ucMBFrame[usLength++] = ( UCHAR )( ucFunctionCode | MB_FUNC_ERROR );        
-        ucMBFrame[usLength++] = eException;        
-      }                
-      ucMBAddress	 = ucRcvAddress;
-      sMBSlave.send( ucMBAddress, ucMBFrame, usLength );        
-    } 
+      if( ucRcvAddress != MB_ADDRESS_BROADCAST ) {        
+        if( eException != MB_EX_NONE ) {        
+          //An exception occured. Build an error frame.        
+          usLength = 0;        
+          ucMBFrame[usLength++] = ( UCHAR )( ucFunctionCode | MB_FUNC_ERROR );        
+          ucMBFrame[usLength++] = eException;        
+        }    
+        sMBSlave.send( ucMBAddress, ucMBFrame, usLength );        
+      } 
+		}
 	}
 	memset(USART_DMA_RxBuf,0,USART1_DMA_Rec_Cnt);
   USART1_DMA_Rec_Cnt =0;

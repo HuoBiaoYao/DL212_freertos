@@ -117,7 +117,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>/</Name>
+          <Name>${V	V	?瀟</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -150,47 +150,32 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>usRegHoldingBuf</ItemText>
+          <ItemText>DL212_EasyMode_Scan_Count</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>usRegInputBuf</ItemText>
+          <ItemText>USART_DMA_RxBuf,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>DL212_EasyMode_Scan_Count</ItemText>
+          <ItemText>usSndBufferCount</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>USART_DMA_RxBuf</ItemText>
+          <ItemText>sEMData,0x10</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>USART_DMA_TxBuf</ItemText>
+          <ItemText>ucMBAddress</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>usLength</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>pucSndBufferCur</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>usSndBufferCount</ItemText>
-        </Ww>
-        <Ww>
-          <count>8</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>ucMBFrame</ItemText>
+          <ItemText>usRegInputBuf</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -272,7 +257,7 @@
 
   <Group>
     <GroupName>user</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -468,7 +453,7 @@
 
   <Group>
     <GroupName>freertos_portable</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -652,7 +637,7 @@
 
   <Group>
     <GroupName>freemodbus_port</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

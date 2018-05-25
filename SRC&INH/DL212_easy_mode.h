@@ -5,6 +5,9 @@ struct _SPECIALDATA{
 	char addr_0;
 	char addr_1;
 	unsigned int scan_intvl;
+	unsigned int usart_baudrate;
+	unsigned char usart_mode;
+	unsigned char modbus_address;
   unsigned char v1_func;
 	unsigned char v2_func;
 	unsigned char v3_func;
@@ -18,12 +21,12 @@ struct _SPECIALDATA{
 };
 
 extern unsigned char DL212_EasyMode;
+extern struct _SPECIALDATA sEMData;
 
 void DL212_EasyMode_Scan(void); 
 void DL212_EasyMode_ValueDisplay(void);
 void DL212_EasyMode_Init(void);
 void DL212_EasyMode_Config(void);
- 
-
+  
 #endif
 
