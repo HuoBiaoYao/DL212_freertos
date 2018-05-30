@@ -52,7 +52,7 @@ void Task_Start(void *pvParameters){
   BinarySemaphore_USB = xSemaphoreCreateBinary(); 
  	xSemaphore = xSemaphoreCreateMutex(); 
   if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
-	  while(1);
+	  while(1); 
 	}
 	My_USB_Init(); 
 	psSE_FUNC->init(); 
