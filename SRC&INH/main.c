@@ -19,13 +19,14 @@ TaskHandle_t Task3_Handler;
  
 QueueHandle_t xQueue; 
 SemaphoreHandle_t BinarySemaphore_MB; 
-SemaphoreHandle_t BinarySemaphore_USB;  
+SemaphoreHandle_t BinarySemaphore_USB; 
+SemaphoreHandle_t BinarySemaphore_SDI12; 
 SemaphoreHandle_t xSemaphore; 
 
 TimerHandle_t OneShotTimer_Handle; 
 
 int main(void){ 
-	unsigned int i; 
+	unsigned int i;
  
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //设置系统中断优先级分组4	 	 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
@@ -50,6 +51,7 @@ void Task_Start(void *pvParameters){
   xQueue = xQueueCreate(10,sizeof(char));
 	BinarySemaphore_MB = xSemaphoreCreateBinary(); 
   BinarySemaphore_USB = xSemaphoreCreateBinary(); 
+	BinarySemaphore_SDI12 = xSemaphoreCreateBinary(); 
  	xSemaphore = xSemaphoreCreateMutex(); 
   if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
 	  while(1); 
@@ -59,8 +61,10 @@ void Task_Start(void *pvParameters){
 	psFram_Func->init(); 
   psFlash_Func->init();  
 	psSW12_Func->init();//SW12控制口初始化
-	psC_Pulse_Func->init(0);//C1口默认初始化为脉冲测量
-	psC_Pulse_Func->init(1);//C2口默认初始化为脉冲测量  
+	psC_Pulse_Func->init(0);//C1脉冲测量
+	psC_Pulse_Func->init(1);//C2脉冲测量  
+	//psSDI12_Func->init(0);
+	//psSDI12_Func->init(1);
  // sDL212_State.battery = psSE_FUNC->bat_read();
  // psSE_FUNC->vref_read(); 
   I2C_RTC_Init();  
@@ -68,10 +72,8 @@ void Task_Start(void *pvParameters){
   TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
   TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
 	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1)  
-	/*SDI12_C1_SEND_DISABLE();
-	psSDI12_Func->init(0);
-	psSDI12_Func->init(1);
-	psC_RS232_Func->init(0,0);*/  
+	SDI12_C1_SEND_DISABLE();
+	//psC_RS232_Func->init(0,0);  
 	OneShotTimer_Handle = xTimerCreate((const char*)"OneShotTimer",
 		                                 (TickType_t)200,//200ms
 	                                   (UBaseType_t)pdFALSE,
@@ -81,7 +83,7 @@ void Task_Start(void *pvParameters){
                 (const char*    )"task for ...", 
                 (uint16_t       )128, 
                 (void*          )NULL, 
-                (UBaseType_t    )1,	
+                (UBaseType_t    )2,	
                 (TaskHandle_t*  )&Task1_Handler); 
 
     xTaskCreate((TaskFunction_t )Task2,
@@ -99,23 +101,23 @@ void Task_Start(void *pvParameters){
     vTaskDelete(Task_Start_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区
 }
-
+  
 unsigned int DL212_EasyMode_Scan_Count=0; 
 void Task1(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
-	
-	DL212_EasyMode_Init();
+	 
+	DL212_EasyMode_Init(); 
 	xLastWakeTime = xTaskGetTickCount(); 
   while(1){ 
     vTaskDelayUntil(&xLastWakeTime,xPeriod); 
 		if(DL212_EasyMode){ 
       DL212_EasyMode_Scan(); 
       DL212_EasyMode_Scan_Count++; 
-			memcpy(usRegInputBuf,sEMData.value,28);
+			memcpy(usRegInputBuf,sEMData.value,28); 
 		} 
 		else{ 
-		  vTaskSuspend(Task3_Handler); 
+		  vTaskSuspend(Task1_Handler); 
 		} 
 	} 
 } 
@@ -125,15 +127,16 @@ void Task2(void *pvParameters){
  
   while(1){ 
     if(USB_DETECT()){ 
+			//SDI12_Transparent(0);
       if(bDeviceState == CONFIGURED){ 
         CDC_Receive_DATA(); 
         if(sUSB_Para.packet_rec){ 
           DL212_EasyMode_Config(); 
-          //USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len); 
+					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len); 
           sUSB_Para.packet_rec = 0; 
           sUSB_Para.rec_len = 0; 
         } 
-      } 
+      }
 	  } 
 		else{ 
 		  if(BinarySemaphore_USB != NULL){ 

@@ -12,7 +12,8 @@ extern TaskHandle_t Task3_Handler;
 
 extern QueueHandle_t xQueue; 
 extern SemaphoreHandle_t BinarySemaphore_MB; 
-extern SemaphoreHandle_t BinarySemaphore_USB;   
+extern SemaphoreHandle_t BinarySemaphore_USB; 
+extern SemaphoreHandle_t BinarySemaphore_SDI12; 
 extern SemaphoreHandle_t xSemaphore;
  
 extern TimerHandle_t OneShotTimer_Handle;

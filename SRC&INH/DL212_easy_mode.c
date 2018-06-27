@@ -87,6 +87,7 @@ void DL212_EasyMode_Scan(void){
 					sEMData.value[i++] = Var[C1_Dest];
 				break;
 				case 1:
+					SDI12Recorder(0);
 					sEMData.value[i++] = 0;
 				break;
 				case 2:
@@ -101,6 +102,7 @@ void DL212_EasyMode_Scan(void){
 					sEMData.value[i++] = Var[C2_Dest];
 				break;
 				case 1:
+					SDI12Recorder(1);
 					sEMData.value[i++] = 0;
 				break;
 				case 2:
@@ -109,12 +111,6 @@ void DL212_EasyMode_Scan(void){
 				break;
 				default:
 				break;
-			}
-			if(1 == sEMData.sw12_1_func){
-			  psSW12_Func->sw(0,1);
-			}
-			if(1 == sEMData.sw12_2_func){
-			  psSW12_Func->sw(1,1);
 			}
 			if(1 == DL212_Value_Display_Ctrl){
 		    i=sprintf(message,"v1 value:%.1f\r\n",sEMData.value[0]);USB_Send((unsigned char *)message,i); 
@@ -150,6 +146,19 @@ void DL212_EasyMode_Init(void){
 		P_SW_Time  =C1_Time  =C2_Time  =F_Mea_Time  =1000;
 		P_SW_Option=C1_Option=C2_Option=F_Mea_Option=1;
 	  P_SW_Dest=0,C1_Dest=1,C2_Dest=2,F_Mea_Dest=3;
+		
+		if(sEMData.sw12_1_func){
+		  psSW12_Func->sw(0,1);
+		}
+		else{
+		  psSW12_Func->sw(0,0);   
+		}
+		if(sEMData.sw12_2_func){
+		  psSW12_Func->sw(1,1);
+		}
+		else{
+		  psSW12_Func->sw(1,0);   
+		}
 		switch(sEMData.v1_func){ 
       case 1: 
 				psSE_FUNC->chan_open(0);
@@ -208,18 +217,20 @@ void DL212_EasyMode_Init(void){
 	      TIM7_Init(1000); 
 	    break;
 	    case 1: 
+				psSDI12_Func->init(0);
 	    break;
 	    case 2: 
 	      TIM_Cmd(TIM7, DISABLE);
 	      psC_OUT_Func->init(0);
 	    break;
 	  }
-	  switch(sEMData.v2_func){
+	  switch(sEMData.d2_func){
 	    case 0: 
 	      psC_Pulse_Func->init(1);
 	      TIM4_Init(1000); 
 	    break;
 	    case 1: 
+				psSDI12_Func->init(1);
 	    break;
 	    case 2: 
 	      TIM_Cmd(TIM4, DISABLE);
