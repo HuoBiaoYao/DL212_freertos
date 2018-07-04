@@ -26,9 +26,15 @@ void DL212_EasyMode_Scan(void){
 	    switch(sEMData.v1_func){ 
 			  case 0:
 					sEMData.value[0] = psSE_FUNC->read(0);
+					if(0 == sEMData.usart_mode){
+			      printf("%c%c,v1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0]); 
+					}
 				break;
 				case 1:
 					sEMData.value[0] = Var[F_Mea_Dest];
+					if(0 == sEMData.usart_mode){
+					  printf("%c%c,v1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0]);   
+					} 
 				break;
 				case 2:
 					sEMData.value[0] = 0;
@@ -43,9 +49,15 @@ void DL212_EasyMode_Scan(void){
 			switch(sEMData.v2_func){
 			  case 0:
 					sEMData.value[1] = psSE_FUNC->read(1);
+					if(0 == sEMData.usart_mode){
+					  printf("%c%c,v2,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[1]); 
+					}
 				break;
 				case 1:
 					sEMData.value[1] = Var[F_Mea_Dest];
+					if(0 == sEMData.usart_mode){
+					  printf("%c%c,v2,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[1]); 
+					}
 				break;
 				case 2:
 					sEMData.value[1] = 0;
@@ -60,9 +72,15 @@ void DL212_EasyMode_Scan(void){
 			switch(sEMData.v3_func){
 			  case 0:
 					sEMData.value[2] = psSE_FUNC->read(2);
+					if(0 == sEMData.usart_mode){
+					  printf("%c%c,v3,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[2]);
+					}
 				break;
 				case 1:
 					sEMData.value[2] = Var[F_Mea_Dest];
+					if(0 == sEMData.usart_mode){
+					  printf("%c%c,v3,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[2]);
+					}
 				break;
 				case 2:
 					sEMData.value[2] = 0;
@@ -77,9 +95,15 @@ void DL212_EasyMode_Scan(void){
 			switch(sEMData.v4_func){
 			  case 0:
 					sEMData.value[3] = psSE_FUNC->read(3);
+					if(0 == sEMData.usart_mode){
+					  printf("%c%c,v4,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[3]);
+					}
 				break;
 				case 1:
 					sEMData.value[3] = Var[F_Mea_Dest];
+					if(0 == sEMData.usart_mode){
+					  printf("%c%c,v4,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[3]);
+					}
 				break;
 				case 2:
 					sEMData.value[3] = 0;
@@ -92,7 +116,10 @@ void DL212_EasyMode_Scan(void){
 		    i=sprintf(message,"v4 value:%.1f\r\n",sEMData.value[3]);USB_Send((unsigned char *)message,i); 
 			}
 			if(0 == sEMData.f1_func){
-			  sEMData.value[4] = Var[P_SW_Dest];
+				sEMData.value[4] = Var[P_SW_Dest];
+				if(0 == sEMData.usart_mode){
+				  printf("%c%c,f1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[4]);
+				}
 			}
 			if(1 == DL212_Value_Display_Ctrl){
 		    i=sprintf(message,"f1 value:%.0f\r\n",sEMData.value[4]);USB_Send((unsigned char *)message,i); 
@@ -100,9 +127,12 @@ void DL212_EasyMode_Scan(void){
 			switch(sEMData.d1_func){
 			  case 0:
 					sEMData.value[5] = Var[C1_Dest];
+				  if(0 == sEMData.usart_mode){
+				    printf("%c%c,d1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[5]);
+				  }
 				  if(1 == DL212_Value_Display_Ctrl){
 		        i=sprintf(message,"d1 value:%.0f\r\n",sEMData.value[5]);USB_Send((unsigned char *)message,i); 
-			    }
+			    } 
 				break;
 				case 1:
 					SDI12Recorder(0,(unsigned char*)&sEMData.sdicmd[0][0]);
@@ -116,9 +146,12 @@ void DL212_EasyMode_Scan(void){
 			switch(sEMData.d2_func){
 			  case 0:
 					sEMData.value[6] = Var[C2_Dest];
+				  if(0 == sEMData.usart_mode){
+				    printf("%c%c,d2,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[6]);
+				  }
 				  if(1 == DL212_Value_Display_Ctrl){
 		        i=sprintf(message,"d2 value:%.0f\r\n\r\n",sEMData.value[6]);USB_Send((unsigned char *)message,i); 
-		    	}
+		    	} 
 				break;
 				case 1:
 					SDI12Recorder(1,(unsigned char*)&sEMData.sdicmd[1][0]);
@@ -129,9 +162,9 @@ void DL212_EasyMode_Scan(void){
 				default:
 				break;
 			} 
-			if(0 == sEMData.usart_mode){
+			/*if(0 == sEMData.usart_mode){
 		    printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0],sEMData.value[1],sEMData.value[2],sEMData.value[3],sEMData.value[4],sEMData.value[5],sEMData.value[6]);
-			}
+			}*/
 	  }
 	} 
 } 

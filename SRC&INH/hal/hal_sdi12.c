@@ -94,6 +94,11 @@ __SDI12_RSL SDI12_Read_FromISR(unsigned char port,unsigned char *dst,unsigned ch
 	}
 	if(SDI12_REICEIVE == eSDI12_BUS[port]){
 		*(dst+sSDI12_Para[port].rx_ptr++) = (*src&0x7F);
+		if(1 == sSDI12_Para[port].rx_ptr){
+		  if(BinarySemaphore_SDI12_FirstByte != NULL){
+			  xSemaphoreGiveFromISR(BinarySemaphore_SDI12_FirstByte,&xHigherPriorityTaskWoken);
+			}
+		}
     if(0x0D==*(sSDI12_Para[port].rx_buf+sSDI12_Para[port].rx_ptr-2) && 0x0A==*(sSDI12_Para[port].rx_buf+sSDI12_Para[port].rx_ptr-1)){
       xSemaphoreGiveFromISR(BinarySemaphore_SDI12_CR_LF,&xHigherPriorityTaskWoken);
     }
@@ -360,6 +365,9 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 		    psSDI12_Func->send(port,sdicmd+j,i-j+1);  
 				delay_ms(8);
 		    eSDI12_BUS[port] = SDI12_REICEIVE; 			
+				
+		if(BinarySemaphore_SDI12_FirstByte != NULL){
+			if(xSemaphoreTake(BinarySemaphore_SDI12_FirstByte,80) == pdTRUE){
 				if(BinarySemaphore_SDI12_CR_LF != NULL){ 
           if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,700) == pdTRUE){
 						if(*sSDI12_Para[port].rx_buf == *(sdicmd+j)){
@@ -373,6 +381,9 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 							  	} 
 								} 
               } 
+							else if(*(sdicmd+j+1) == 'A'){//½ûÖ¹ÐÞ¸ÄµØÖ·
+							  break;
+							}
               else{
                 SDI12_DataProcess(port);
                 sSDI12_Para[port].rx_ptr = 0;
@@ -385,6 +396,9 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
             
 					}
 				}
+			}
+		}			
+    				
 				
 				sSDI12_Para[port].rx_ptr = 0;
 		    eSDI12_BUS[port] = SDI12_IDLE;
@@ -398,15 +412,30 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 }
 #include "DL212_easy_mode.h"
 void SDI12_DataProcess(unsigned char port){
-	unsigned int i;
-	unsigned char message[30];
+	unsigned int i,j=0;
+	unsigned char message[100];
 	
   if(1 == DL212_Value_Display_Ctrl){
    // memcpy(SDI12_Data[port],sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr);
 		i=sprintf((char*)message,"d%d PORT SDI-12 value:",port+1);USB_Send(message,i);
     USB_Send(sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr); 
    // SDI12_Data_Bytes[port] += sSDI12_Para[port].rx_ptr;
-  }  
+  }
+	if(0 == sEMData.usart_mode){
+    //printf("%c%c,%s",sEMData.addr_0,sEMData.addr_1,sSDI12_Para[port].rx_buf);
+		i=0;
+		while(*(sSDI12_Para[port].rx_buf+j) != '\r'){
+			if('+'==*(sSDI12_Para[port].rx_buf+j) || '-'==*(sSDI12_Para[port].rx_buf+j)){
+				*(message+i++)= ',';
+			  *(message+i++)= *(sSDI12_Para[port].rx_buf+j++);
+			}
+			else{
+			  *(message+i++)= *(sSDI12_Para[port].rx_buf+j++);
+			}
+		}
+		*(message+i++) = '\r',*(message+i++) = '\n',*(message+i++) = 0;
+		printf("%c%c,d%d,%s",sEMData.addr_0,sEMData.addr_1,port+1,message);
+  }
 }
 
 /*void SDI12_DataProcess(unsigned char port){
