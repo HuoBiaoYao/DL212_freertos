@@ -15,12 +15,13 @@ struct _SPECIALDATA{
 	unsigned char f1_func;
 	unsigned char d1_func;
 	unsigned char d2_func;
-	unsigned char sw12_1_func;
+	unsigned char sw12_1_func; 
 	unsigned char sw12_2_func; 
-	char sdicmd[62][7];
+	char sdicmd[2][440];
 	float value[7];//v1,v2,v3,v4,f1,d1,d2,如果缺省,则后面的参数往前移位
 };
 
+extern unsigned char DL212_Value_Display_Ctrl;
 extern unsigned char DL212_EasyMode;
 extern struct _SPECIALDATA sEMData;
 

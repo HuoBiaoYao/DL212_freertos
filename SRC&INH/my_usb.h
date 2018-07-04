@@ -4,7 +4,7 @@
 #include "usb_init.h"
 #include "usb_pwr.h"
  
-#define USB_RX_SIZE   99
+#define USB_RX_SIZE   500
 #define USB_TX_SIZE   99
 
 extern struct _USB_PARA sUSB_Para; 

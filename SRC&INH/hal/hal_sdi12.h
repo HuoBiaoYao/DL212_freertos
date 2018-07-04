@@ -82,10 +82,11 @@ __SDI12_RSL SDI12_Read_FromISR(unsigned char port,unsigned char *dst,unsigned ch
 __SDI12_RSL SDI12_Send(unsigned char port,unsigned char *string,unsigned int len); 
 __SDI12_RSL SDI12_SendByte(unsigned char port,unsigned char *byte);
 __SDI12_RSL SDI12_Transparent(unsigned char port);
-__SDI12_RSL SDI12Recorder(char port); 
+__SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd);
 void SDI12_DataProcess(unsigned char port);
  
-extern char SDI12_Data[62][SDI12_RX_SIZE];
+extern char SDI12_Data[2][SDI12_RX_SIZE];
+extern unsigned int SDI12_Data_Bytes[2];
 extern __SDI12_BUS eSDI12_BUS[2];
 extern struct _SDI12_PARA sSDI12_Para[2];
 extern struct _SDI12_FUNC sSDI12_Func;

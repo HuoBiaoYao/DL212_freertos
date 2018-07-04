@@ -17,17 +17,18 @@ TaskHandle_t Task1_Handler;
 TaskHandle_t Task2_Handler; 
 TaskHandle_t Task3_Handler; 
  
-QueueHandle_t xQueue; 
-SemaphoreHandle_t BinarySemaphore_MB; 
-SemaphoreHandle_t BinarySemaphore_USB; 
-SemaphoreHandle_t BinarySemaphore_SDI12; 
+QueueHandle_t xQueue;
+SemaphoreHandle_t BinarySemaphore_MB,\
+                  BinarySemaphore_USB,\
+									BinarySemaphore_SDI12_FirstByte,\
+                  BinarySemaphore_SDI12_CR_LF;									
 SemaphoreHandle_t xSemaphore; 
 
 TimerHandle_t OneShotTimer_Handle; 
 
-int main(void){ 
+int main(void){
 	unsigned int i;
- 
+  
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //设置系统中断优先级分组4	 	 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
 	delay_init(); //延时函数初始化 
@@ -48,12 +49,15 @@ int main(void){
 //开始任务任务函数
 void Task_Start(void *pvParameters){
   taskENTER_CRITICAL();           //进入临界区
-  xQueue = xQueueCreate(10,sizeof(char));
+  xQueue = xQueueCreate(2,sizeof(char));
 	BinarySemaphore_MB = xSemaphoreCreateBinary(); 
-  BinarySemaphore_USB = xSemaphoreCreateBinary(); 
-	BinarySemaphore_SDI12 = xSemaphoreCreateBinary(); 
+  BinarySemaphore_USB = xSemaphoreCreateBinary();
+	BinarySemaphore_SDI12_FirstByte = xSemaphoreCreateBinary(); 
+	BinarySemaphore_SDI12_CR_LF = xSemaphoreCreateBinary(); 
  	xSemaphore = xSemaphoreCreateMutex(); 
-  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || xSemaphore==NULL){
+  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL     || 
+		 BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL ||
+	   xSemaphore==NULL){
 	  while(1); 
 	}
 	My_USB_Init(); 
@@ -67,18 +71,18 @@ void Task_Start(void *pvParameters){
 	//psSDI12_Func->init(1);
  // sDL212_State.battery = psSE_FUNC->bat_read();
  // psSE_FUNC->vref_read(); 
-  I2C_RTC_Init();  
+  I2C_RTC_Init(); 
   TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
   TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
   TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
 	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1)  
 	SDI12_C1_SEND_DISABLE();
 	//psC_RS232_Func->init(0,0);  
-	OneShotTimer_Handle = xTimerCreate((const char*)"OneShotTimer",
+	/*OneShotTimer_Handle = xTimerCreate((const char*)"OneShotTimer",
 		                                 (TickType_t)200,//200ms
 	                                   (UBaseType_t)pdFALSE,
 	                                   (void*)2,
-															       (TimerCallbackFunction_t)OneShotCallback);
+															       (TimerCallbackFunction_t)OneShotCallback);*/
     xTaskCreate((TaskFunction_t )Task1, 
                 (const char*    )"task for ...", 
                 (uint16_t       )128, 

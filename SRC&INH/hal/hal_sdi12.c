@@ -9,7 +9,9 @@
 #include "stm32l1xx_gpio.h"
 
 
-char SDI12_Data[62][SDI12_RX_SIZE];
+char SDI12_Data[2][SDI12_RX_SIZE];
+unsigned int SDI12_Data_Bytes[2];
+
 __SDI12_BUS eSDI12_BUS[2];
 struct _SDI12_PARA sSDI12_Para[2];
 struct _SDI12_FUNC sSDI12_Func={
@@ -93,12 +95,14 @@ __SDI12_RSL SDI12_Read_FromISR(unsigned char port,unsigned char *dst,unsigned ch
 	if(SDI12_REICEIVE == eSDI12_BUS[port]){
 		*(dst+sSDI12_Para[port].rx_ptr++) = (*src&0x7F);
     if(0x0D==*(sSDI12_Para[port].rx_buf+sSDI12_Para[port].rx_ptr-2) && 0x0A==*(sSDI12_Para[port].rx_buf+sSDI12_Para[port].rx_ptr-1)){
-      xSemaphoreGiveFromISR(BinarySemaphore_SDI12,&xHigherPriorityTaskWoken);
+      xSemaphoreGiveFromISR(BinarySemaphore_SDI12_CR_LF,&xHigherPriorityTaskWoken);
     }
 		if(sSDI12_Para[port].rx_ptr >= SDI12_RX_SIZE){
 		  sSDI12_Para[port].rx_ptr = 0;
 		}
 	}		
+	
+	return SDI12_OK;
 }
 			
 __SDI12_RSL SDI12_Send(unsigned char port,unsigned char *string,unsigned int len){
@@ -143,15 +147,16 @@ __SDI12_RSL SDI12_Send(unsigned char port,unsigned char *string,unsigned int len
 } 
 
 __SDI12_RSL SDI12_SendByte(unsigned char port,unsigned char *byte){
-	unsigned char i,even=0;
+	unsigned char i,even=0,buf;
 	 
 	if(C_SDI12_IN_USE != eC_PORT_STATE[port]){
 	  return SDI12_NOT_IN_USE;
 	}
+	buf = *byte;
 	psSDI12_Func->start(port);
 	delay_us(DElAY_Baud1200);
 	for(i=0;i<7;i++){
-		if(*byte&0x01){
+		if(buf&0x01){
 			psSDI12_Func->bus_low(port);
 			delay_us(DElAY_Baud1200);
 		  even++;
@@ -160,7 +165,7 @@ __SDI12_RSL SDI12_SendByte(unsigned char port,unsigned char *byte){
 		  psSDI12_Func->bus_high(port);
 			delay_us(DElAY_Baud1200);
 		}
-		*byte >>= 1;
+		buf >>= 1;
 	}
 	if(even&0x01){
 	  psSDI12_Func->bus_low(port);
@@ -317,7 +322,7 @@ __SDI12_RSL SDI12_Transparent(unsigned char port){
 	return SDI12_OK;
 }
     
-__SDI12_RSL SDI12Recorder(char port){ 
+/*__SDI12_RSL SDI12Recorder(char port){ 
 	unsigned int retry=3,i=0,j,len=0; 
 	
 	sSDI12_Para[port].tx_buf[0] = 'A';
@@ -331,8 +336,8 @@ __SDI12_RSL SDI12Recorder(char port){
 		delay_ms(8);
 		//delay_us(8000); 
 		eSDI12_BUS[port] = SDI12_REICEIVE; 
-    if(BinarySemaphore_SDI12 != NULL){ 
-      if(xSemaphoreTake(BinarySemaphore_SDI12,810) == pdTRUE){ 
+    if(BinarySemaphore_SDI12_CR_LF != NULL){ 
+      if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,810) == pdTRUE){ 
         SDI12_DataProcess(port);
 			  sSDI12_Para[port].rx_ptr = 0;
 		    break;
@@ -342,9 +347,69 @@ __SDI12_RSL SDI12Recorder(char port){
 	}
 	
 	return SDI12_OK;
+}*/
+
+__SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){ 
+	unsigned int retry,i=0,j=0,M_cmd_delay_ms=0;
+	
+	while(*(sdicmd+i) != '\r'){
+	  if(*(sdicmd+i) == '!'){
+			retry = 3;
+		  while(retry--){
+	  	  eSDI12_BUS[port] = SDI12_BUSY; 
+		    psSDI12_Func->send(port,sdicmd+j,i-j+1);  
+				delay_ms(8);
+		    eSDI12_BUS[port] = SDI12_REICEIVE; 			
+				if(BinarySemaphore_SDI12_CR_LF != NULL){ 
+          if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,700) == pdTRUE){
+						if(*sSDI12_Para[port].rx_buf == *(sdicmd+j)){
+						  if(*(sdicmd+j+1) == 'M'){
+								sSDI12_Para[port].rx_ptr = 0;
+								M_cmd_delay_ms = ((*(sSDI12_Para[port].rx_buf+1)-0x30)*100+(*(sSDI12_Para[port].rx_buf+2)-0x30)*10+(*(sSDI12_Para[port].rx_buf+3)-0x30))*1000;
+	              while(M_cmd_delay_ms--){ 
+									if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,1) == pdTRUE){
+										sSDI12_Para[port].rx_ptr = 0;
+								    break;
+							  	} 
+								} 
+              } 
+              else{
+                SDI12_DataProcess(port);
+                sSDI12_Para[port].rx_ptr = 0;
+              } 
+              break;
+						}
+						else{
+						  break;
+						}
+            
+					}
+				}
+				
+				sSDI12_Para[port].rx_ptr = 0;
+		    eSDI12_BUS[port] = SDI12_IDLE;
+    	}
+			j = i+1;
+    }
+		i++;
+	}
+	 
+	return SDI12_OK;
 }
- 
+#include "DL212_easy_mode.h"
 void SDI12_DataProcess(unsigned char port){
+	unsigned int i;
+	unsigned char message[30];
+	
+  if(1 == DL212_Value_Display_Ctrl){
+   // memcpy(SDI12_Data[port],sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr);
+		i=sprintf((char*)message,"d%d PORT SDI-12 value:",port+1);USB_Send(message,i);
+    USB_Send(sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr); 
+   // SDI12_Data_Bytes[port] += sSDI12_Para[port].rx_ptr;
+  }  
+}
+
+/*void SDI12_DataProcess(unsigned char port){
 	unsigned int j;
 	
   if(isdigit(*sSDI12_Para[port].rx_buf)){
@@ -365,4 +430,4 @@ void SDI12_DataProcess(unsigned char port){
   else{
     __nop();
   }
-}
+}*/

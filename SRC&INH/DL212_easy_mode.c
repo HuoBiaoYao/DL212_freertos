@@ -25,73 +25,89 @@ void DL212_EasyMode_Scan(void){
 			LastScanIntCount = RTC_M41T81_IntCount; 
 	    switch(sEMData.v1_func){ 
 			  case 0:
-					sEMData.value[i++] = psSE_FUNC->read(0);
+					sEMData.value[0] = psSE_FUNC->read(0);
 				break;
 				case 1:
-					sEMData.value[i++] = Var[F_Mea_Dest];
+					sEMData.value[0] = Var[F_Mea_Dest];
 				break;
 				case 2:
-					sEMData.value[i++] = 0;
+					sEMData.value[0] = 0;
 					psSE_FUNC->out_ctrl(0,1);
 				break;
 				default:
 				break;
 			}
+			if(1 == DL212_Value_Display_Ctrl){
+		    i=sprintf(message,"v1 value:%.1f\r\n",sEMData.value[0]);USB_Send((unsigned char *)message,i); 
+			}
 			switch(sEMData.v2_func){
 			  case 0:
-					sEMData.value[i++] = psSE_FUNC->read(1);
+					sEMData.value[1] = psSE_FUNC->read(1);
 				break;
 				case 1:
-					sEMData.value[i++] = Var[F_Mea_Dest];
+					sEMData.value[1] = Var[F_Mea_Dest];
 				break;
 				case 2:
-					sEMData.value[i++] = 0;
+					sEMData.value[1] = 0;
 					psSE_FUNC->out_ctrl(1,1);
 				break;
 				default:
 				break;
 			}
+			if(1 == DL212_Value_Display_Ctrl){
+		    i=sprintf(message,"v2 value:%.1f\r\n",sEMData.value[1]);USB_Send((unsigned char *)message,i); 
+			}
 			switch(sEMData.v3_func){
 			  case 0:
-					sEMData.value[i++] = psSE_FUNC->read(2);
+					sEMData.value[2] = psSE_FUNC->read(2);
 				break;
 				case 1:
-					sEMData.value[i++] = Var[F_Mea_Dest];
+					sEMData.value[2] = Var[F_Mea_Dest];
 				break;
 				case 2:
-					sEMData.value[i++] = 0;
+					sEMData.value[2] = 0;
 					psSE_FUNC->out_ctrl(2,1);
 				break;
 				default:
 				break;
 			}
+			if(1 == DL212_Value_Display_Ctrl){
+		    i=sprintf(message,"v3 value:%.1f\r\n",sEMData.value[2]);USB_Send((unsigned char *)message,i); 
+			}
 			switch(sEMData.v4_func){
 			  case 0:
-					sEMData.value[i++] = psSE_FUNC->read(3);
+					sEMData.value[3] = psSE_FUNC->read(3);
 				break;
 				case 1:
-					sEMData.value[i++] = Var[F_Mea_Dest];
+					sEMData.value[3] = Var[F_Mea_Dest];
 				break;
 				case 2:
-					sEMData.value[i++] = 0;
+					sEMData.value[3] = 0;
 					psSE_FUNC->out_ctrl(3,1);
 				break;
 				default:
 				break;
 			}
+			if(1 == DL212_Value_Display_Ctrl){
+		    i=sprintf(message,"v4 value:%.1f\r\n",sEMData.value[3]);USB_Send((unsigned char *)message,i); 
+			}
 			if(0 == sEMData.f1_func){
-			  sEMData.value[i++] = Var[P_SW_Dest];
+			  sEMData.value[4] = Var[P_SW_Dest];
+			}
+			if(1 == DL212_Value_Display_Ctrl){
+		    i=sprintf(message,"f1 value:%.0f\r\n",sEMData.value[4]);USB_Send((unsigned char *)message,i); 
 			}
 			switch(sEMData.d1_func){
 			  case 0:
-					sEMData.value[i++] = Var[C1_Dest];
+					sEMData.value[5] = Var[C1_Dest];
+				  if(1 == DL212_Value_Display_Ctrl){
+		        i=sprintf(message,"d1 value:%.0f\r\n",sEMData.value[5]);USB_Send((unsigned char *)message,i); 
+			    }
 				break;
 				case 1:
-					SDI12Recorder(0);
-					sEMData.value[i++] = 0;
+					SDI12Recorder(0,(unsigned char*)&sEMData.sdicmd[0][0]);
 				break;
-				case 2:
-					sEMData.value[i++] = 0;
+				case 2: 
 					psC_OUT_Func->out(0,1);
 				break;
 				default:
@@ -99,28 +115,20 @@ void DL212_EasyMode_Scan(void){
 			}
 			switch(sEMData.d2_func){
 			  case 0:
-					sEMData.value[i++] = Var[C2_Dest];
+					sEMData.value[6] = Var[C2_Dest];
+				  if(1 == DL212_Value_Display_Ctrl){
+		        i=sprintf(message,"d2 value:%.0f\r\n\r\n",sEMData.value[6]);USB_Send((unsigned char *)message,i); 
+		    	}
 				break;
 				case 1:
-					SDI12Recorder(1);
-					sEMData.value[i++] = 0;
+					SDI12Recorder(1,(unsigned char*)&sEMData.sdicmd[1][0]);
 				break;
-				case 2:
-					sEMData.value[i++] = 0;
+				case 2: 
 					psC_OUT_Func->out(1,1);
 				break;
 				default:
 				break;
-			}
-			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v1 value:%.1f\r\n",sEMData.value[0]);USB_Send((unsigned char *)message,i); 
-        i=sprintf(message,"v2 value:%.1f\r\n",sEMData.value[1]);USB_Send((unsigned char *)message,i); 
-	 	    i=sprintf(message,"v3 value:%.1f\r\n",sEMData.value[2]);USB_Send((unsigned char *)message,i); 
-		    i=sprintf(message,"v4 value:%.1f\r\n",sEMData.value[3]);USB_Send((unsigned char *)message,i); 
-		    i=sprintf(message,"f1 value:%.0f\r\n",sEMData.value[4]);USB_Send((unsigned char *)message,i); 
-		    i=sprintf(message,"d1 value:%.0f\r\n",sEMData.value[5]);USB_Send((unsigned char *)message,i); 
-		    i=sprintf(message,"d2 value:%.0f\r\n\r\n",sEMData.value[6]);USB_Send((unsigned char *)message,i); 
-		  } 
+			} 
 			if(0 == sEMData.usart_mode){
 		    printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0],sEMData.value[1],sEMData.value[2],sEMData.value[3],sEMData.value[4],sEMData.value[5],sEMData.value[6]);
 			}
@@ -532,13 +540,30 @@ void DL212_EasyMode_Config(void){
 			  i = atoi((const char*)sUSB_Para.rx_buf); 
 				if(0==i || 1==i || 2==i){
 					sEMData.d1_func = i;
-				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
+				  USB_Send((unsigned char *)message,sprintf(message,"ok\r\n\r\n"));
+					sUSB_Para.rec_len = 0;
 					switch(i){
 					  case 0: 
 				      psC_Pulse_Func->init(0);
 						  TIM7_Init(1000); 
 						break;
 						case 1: 
+							psSDI12_Func->init(0); 
+						  //i=sprintf(message,"D1端口SDI-12命令设置,以逗号为分隔符(%s):\r\n\r\n",&sEMData.sdicmd[0][0]);USB_Send((unsigned char *)message,i);
+              if(sEMData.sdicmd[0][0] != 0){           
+  						  i=sprintf(message,"D1端口SDI-12命令设置,以逗号为分隔符(%s",&sEMData.sdicmd[0][0]);
+						    USB_Send((unsigned char *)message,i-2);
+                i=sprintf(message,"):\r\n\r\n");USB_Send((unsigned char *)message,i); 
+							}					 
+ 							else{
+							  i=sprintf(message,"D1端口SDI-12命令设置,以逗号为分隔符():\r\n\r\n");USB_Send((unsigned char *)message,i); 
+							}
+						  while('\r'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) || '\n'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
+                CDC_Receive_DATA();  
+							}
+							strcpy(&sEMData.sdicmd[0][0],(const char*)sUSB_Para.rx_buf);
+							sEMData.sdicmd[0][sUSB_Para.rec_len] = 0;
+              i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);  							
 						break;
 						case 2: 
 							TIM_Cmd(TIM7, DISABLE);
@@ -546,6 +571,7 @@ void DL212_EasyMode_Config(void){
 						break;
 					} 
           EEPROM_Write((unsigned char*)&sEMData.d1_func,((unsigned int)&sEMData.d1_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.d1_func)); 
+          EEPROM_Write((unsigned char*)&sEMData.sdicmd[0][0],((unsigned int)&sEMData.sdicmd[0][0]-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),440); 				
 					break;
 				} 
 				else{
@@ -569,13 +595,30 @@ void DL212_EasyMode_Config(void){
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i || 2==i){
 					sEMData.d2_func = i;
-				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
+				  USB_Send((unsigned char *)message,sprintf(message,"ok\r\n\r\n"));
+					sUSB_Para.rec_len = 0;
 					switch(i){
 					  case 0: 
 				      psC_Pulse_Func->init(1);
 						  TIM4_Init(1000); 
 						break;
 						case 1: 
+							psSDI12_Func->init(1);
+						  //i=sprintf(message,"D2端口SDI-12命令设置,以逗号为分隔符(%s):\r\n\r\n",&sEMData.sdicmd[1][0]);USB_Send((unsigned char *)message,i);						
+              if(sEMData.sdicmd[1][0] != 0){
+							  i=sprintf(message,"D2端口SDI-12命令设置,以逗号为分隔符(%s",&sEMData.sdicmd[1][0]);
+						    USB_Send((unsigned char *)message,i-2);
+                i=sprintf(message,"):\r\n\r\n");USB_Send((unsigned char *)message,i); 
+							}
+	  					else{
+							  i=sprintf(message,"D2端口SDI-12命令设置,以逗号为分隔符():\r\n\r\n");USB_Send((unsigned char *)message,i); 
+							}
+  						while('\r'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) || '\n'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
+                CDC_Receive_DATA();  
+							}
+							strcpy(&sEMData.sdicmd[1][0],(const char*)sUSB_Para.rx_buf);
+							sEMData.sdicmd[1][sUSB_Para.rec_len] = 0;
+              i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);	
 						break;
 						case 2: 
 							TIM_Cmd(TIM4, DISABLE);
@@ -583,6 +626,7 @@ void DL212_EasyMode_Config(void){
 						break;
 					} 
           EEPROM_Write((unsigned char*)&sEMData.d2_func,((unsigned int)&sEMData.d2_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.d2_func)); 
+          EEPROM_Write((unsigned char*)&sEMData.sdicmd[1][0],((unsigned int)&sEMData.sdicmd[1][0]-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),440); 
 					break;
 				} 
 				else{

@@ -44,7 +44,7 @@ void I2C_RTC_Init(void){
   I2C_Init(I2C2, &I2C_InitStructure);
 	I2C_Cmd(I2C2, ENABLE);
 	I2C_AcknowledgeConfig(I2C2,ENABLE);
-	 
+  
 	for(i=0;i<100000;i++);
 	//I2C_Write((unsigned char *)Buf_08h_Sqwe,0x08,12);
   I2C_Write((unsigned char *)Buf_00h_Sqwe,0x0,20);//芯片第一次配置时使用
