@@ -112,13 +112,14 @@ void Task1(void *pvParameters){
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
 	 
 	DL212_EasyMode_Init(); 
-	xLastWakeTime = xTaskGetTickCount(); 
+	//xLastWakeTime = xTaskGetTickCount(); 
   while(1){ 
-    vTaskDelayUntil(&xLastWakeTime,xPeriod); 
+    //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
+		vTaskDelay(1000);
 		if(DL212_EasyMode){ 
       DL212_EasyMode_Scan(); 
       DL212_EasyMode_Scan_Count++; 
-			memcpy(usRegInputBuf,sEMData.value,28); 
+			memcpy(usRegInputBuf,Value,28); 
 		} 
 		else{ 
 		  vTaskSuspend(Task1_Handler); 
@@ -134,7 +135,9 @@ void Task2(void *pvParameters){
 			//SDI12_Transparent(0);
       if(bDeviceState == CONFIGURED){ 
         CDC_Receive_DATA(); 
-        if(sUSB_Para.packet_rec){ 
+        if(sUSB_Para.packet_rec){
+          DL212_EasyMode_ValueDisplay();					
+					DL212_Config_Utility();
           DL212_EasyMode_Config(); 
 					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len); 
           sUSB_Para.packet_rec = 0; 
@@ -156,16 +159,16 @@ void Task3(void *pvParameters){
 	portTickType xLastWakeTime; 
   unsigned char i=0;
 	
-	while(i<=10 && 0==sEMData.usart_baudrate){
+	while(i<=10 && 0==sDL212_Config.baudrate){
 	  i++;
 		vTaskDelay(100);
 	}
-	sMBSlave.init(sEMData.usart_baudrate); 
+	sMBSlave.init(sDL212_Config.baudrate); 
 	while(1){ 
 	  if(BinarySemaphore_MB != NULL){ 
       if(xSemaphoreTake(BinarySemaphore_MB,portMAX_DELAY) == pdTRUE){ 
-				if(1 == sEMData.usart_mode){
-					ucMBAddress = sEMData.modbus_address;
+				if(1 == sDL212_Config.mode){
+					ucMBAddress = sDL212_Config.modbus_addr;
 				  sMBSlave.poll();
 				}
         else{

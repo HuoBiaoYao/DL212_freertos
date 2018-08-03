@@ -357,6 +357,9 @@ __SDI12_RSL SDI12_Transparent(unsigned char port){
 __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){ 
 	unsigned int retry,i=0,j=0,M_cmd_delay_ms=0;
 	
+	if(0 == *(sdicmd)){
+	  return 1;
+	}
 	while(*(sdicmd+i) != '\r'){
 	  if(*(sdicmd+i) == '!'){
 			retry = 3;
@@ -366,40 +369,41 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 				delay_ms(8);
 		    eSDI12_BUS[port] = SDI12_REICEIVE; 			
 				
-		if(BinarySemaphore_SDI12_FirstByte != NULL){
-			if(xSemaphoreTake(BinarySemaphore_SDI12_FirstByte,80) == pdTRUE){
-				if(BinarySemaphore_SDI12_CR_LF != NULL){ 
-          if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,700) == pdTRUE){
-						if(*sSDI12_Para[port].rx_buf == *(sdicmd+j)){
-						  if(*(sdicmd+j+1) == 'M'){
-								sSDI12_Para[port].rx_ptr = 0;
-								M_cmd_delay_ms = ((*(sSDI12_Para[port].rx_buf+1)-0x30)*100+(*(sSDI12_Para[port].rx_buf+2)-0x30)*10+(*(sSDI12_Para[port].rx_buf+3)-0x30))*1000;
-	              while(M_cmd_delay_ms--){ 
-									if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,1) == pdTRUE){
-										sSDI12_Para[port].rx_ptr = 0;
-								    break;
-							  	} 
-								} 
-              } 
-							else if(*(sdicmd+j+1) == 'A'){//½ûÖ¹ÐÞ¸ÄµØÖ·
-							  break;
-							}
-              else{
-                SDI12_DataProcess(port);
-                sSDI12_Para[port].rx_ptr = 0;
-              } 
-              break;
-						}
-						else{
-						  break;
-						}
+					if(BinarySemaphore_SDI12_FirstByte != NULL){
+						if(xSemaphoreTake(BinarySemaphore_SDI12_FirstByte,80) == pdTRUE){
+							if(BinarySemaphore_SDI12_CR_LF != NULL){ 
+								if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,700) == pdTRUE){
+									if(*sSDI12_Para[port].rx_buf == *(sdicmd+j)){
+										if(*(sdicmd+j+1) == 'M'){
+											sSDI12_Para[port].rx_ptr = 0;
+											M_cmd_delay_ms = ((*(sSDI12_Para[port].rx_buf+1)-0x30)*100+(*(sSDI12_Para[port].rx_buf+2)-0x30)*10+(*(sSDI12_Para[port].rx_buf+3)-0x30))*1000;
+											while(M_cmd_delay_ms--){ 
+												if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,1) == pdTRUE){
+													sSDI12_Para[port].rx_ptr = 0;
+													break;
+												} 
+											} 
+										} 
+										else if(*(sdicmd+j+1) == 'A'){//½ûÖ¹ÐÞ¸ÄµØÖ·
+											break;
+										}
+										else{
+											SDI12_DataProcess(port);
+											sSDI12_Para[port].rx_ptr = 0;
+										} 
+										break;
+									}
+									else{
+										SDI12_DataProcess(port);
+									  sSDI12_Para[port].rx_ptr = 0;
+										break;
+									}
             
-					}
-				}
-			}
-		}			
-    				
-				
+								}
+							}
+						}
+					}			
+    	
 				sSDI12_Para[port].rx_ptr = 0;
 		    eSDI12_BUS[port] = SDI12_IDLE;
     	}
@@ -417,11 +421,11 @@ void SDI12_DataProcess(unsigned char port){
 	
   if(1 == DL212_Value_Display_Ctrl){
    // memcpy(SDI12_Data[port],sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr);
-		i=sprintf((char*)message,"d%d PORT SDI-12 value:",port+1);USB_Send(message,i);
+		i=sprintf((char*)message,"d%d SDI-12 value:",port+1);USB_Send(message,i);
     USB_Send(sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr); 
    // SDI12_Data_Bytes[port] += sSDI12_Para[port].rx_ptr;
   }
-	if(0 == sEMData.usart_mode){
+	if(0 == sDL212_Config.mode){
     //printf("%c%c,%s",sEMData.addr_0,sEMData.addr_1,sSDI12_Para[port].rx_buf);
 		i=0;
 		while(*(sSDI12_Para[port].rx_buf+j) != '\r'){
@@ -434,7 +438,7 @@ void SDI12_DataProcess(unsigned char port){
 			}
 		}
 		*(message+i++) = '\r',*(message+i++) = '\n',*(message+i++) = 0;
-		printf("%c%c,d%d,%s",sEMData.addr_0,sEMData.addr_1,port+1,message);
+		printf("%c%c,d%d,%s",sDL212_Config.mark[0],sDL212_Config.mark[1],port+1,message);
   }
 }
 

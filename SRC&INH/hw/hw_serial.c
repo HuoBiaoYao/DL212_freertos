@@ -43,6 +43,13 @@ void USART1_Config(unsigned int baudrate){
 	USART_InitTypeDef USART_InitStructure;
   NVIC_InitTypeDef NVIC_InitStructure;
 	
+	switch(baudrate){
+	  case 1200: case 2400: case 4800: case 9600: case 14400: case 19200: case 38400: case 56000: case 57600: case 115200: case 128000: case 256000:
+		break;
+    default:
+      baudrate = 115200;
+    break;		
+	}
 	DMA1_Channel4_Config();
 	DMA1_Channel5_Config();
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE);

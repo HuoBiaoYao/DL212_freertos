@@ -10,7 +10,8 @@
 #include "DL212_easy_mode.h"
 #include "main.h"
 
-struct _SPECIALDATA sEMData;
+struct CONFIG sDL212_Config;
+float Value[7];
 unsigned char DL212_EasyMode=1;
 unsigned char DL212_Value_Display_Ctrl=0;
 unsigned int LastScanIntCount=0;
@@ -19,151 +20,177 @@ void DL212_EasyMode_Scan(void){
 	unsigned int i=0;
 	char message[30];
 	
-	DL212_EasyMode_ValueDisplay();
-	if(sEMData.scan_intvl && RTC_M41T81_IntCount!=LastScanIntCount){ 
-	  if(0 == RTC_M41T81_IntCount%sEMData.scan_intvl){ 
+	if(sDL212_Config.scan && RTC_M41T81_IntCount!=LastScanIntCount){ 
+	  if(0 == RTC_M41T81_IntCount%sDL212_Config.scan){ 
 			LastScanIntCount = RTC_M41T81_IntCount; 
-	    switch(sEMData.v1_func){ 
+	    switch(sDL212_Config.port[0]){ 
 			  case 0:
-					sEMData.value[0] = psSE_FUNC->read(0);
-					if(0 == sEMData.usart_mode){
-			      printf("%c%c,v1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0]); 
+					Value[0] = psSE_FUNC->read(0);
+					if(0 == sDL212_Config.mode){
+			      printf("%c%c,v1,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[0]); 
 					}
 				break;
 				case 1:
-					sEMData.value[0] = Var[F_Mea_Dest];
-					if(0 == sEMData.usart_mode){
-					  printf("%c%c,v1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0]);   
+					Value[0] = Var[F_Mea_Dest];
+					if(0 == sDL212_Config.mode){
+					  printf("%c%c,v1,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[0]);   
 					} 
 				break;
 				case 2:
-					sEMData.value[0] = 0;
+					Value[0] = 0;
 					psSE_FUNC->out_ctrl(0,1);
 				break;
+				case 3:
+					Value[0] = 0;
+				  psSE_FUNC->out_ctrl(0,0);
+				break;
 				default:
 				break;
 			}
 			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v1 value:%.1f\r\n",sEMData.value[0]);USB_Send((unsigned char *)message,i); 
+		    i=sprintf(message,"v1 value:%.1f\r\n",Value[0]);USB_Send((unsigned char *)message,i); 
 			}
-			switch(sEMData.v2_func){
+			switch(sDL212_Config.port[1]){
 			  case 0:
-					sEMData.value[1] = psSE_FUNC->read(1);
-					if(0 == sEMData.usart_mode){
-					  printf("%c%c,v2,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[1]); 
+					Value[1] = psSE_FUNC->read(1);
+					if(0 == sDL212_Config.mode){
+					  printf("%c%c,v2,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[1]); 
 					}
 				break;
 				case 1:
-					sEMData.value[1] = Var[F_Mea_Dest];
-					if(0 == sEMData.usart_mode){
-					  printf("%c%c,v2,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[1]); 
+					Value[1] = Var[F_Mea_Dest];
+					if(0 == sDL212_Config.mode){
+					  printf("%c%c,v2,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[1]); 
 					}
 				break;
 				case 2:
-					sEMData.value[1] = 0;
+					Value[1] = 0;
 					psSE_FUNC->out_ctrl(1,1);
 				break;
+				case 3:
+					Value[1] = 0;
+				  psSE_FUNC->out_ctrl(1,0);
+				break;
 				default:
 				break;
 			}
 			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v2 value:%.1f\r\n",sEMData.value[1]);USB_Send((unsigned char *)message,i); 
+		    i=sprintf(message,"v2 value:%.1f\r\n",Value[1]);USB_Send((unsigned char *)message,i); 
 			}
-			switch(sEMData.v3_func){
+			switch(sDL212_Config.port[2]){
 			  case 0:
-					sEMData.value[2] = psSE_FUNC->read(2);
-					if(0 == sEMData.usart_mode){
-					  printf("%c%c,v3,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[2]);
+					Value[2] = psSE_FUNC->read(2);
+					if(0 == sDL212_Config.mode){
+					  printf("%c%c,v3,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[2]);
 					}
 				break;
 				case 1:
-					sEMData.value[2] = Var[F_Mea_Dest];
-					if(0 == sEMData.usart_mode){
-					  printf("%c%c,v3,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[2]);
+					Value[2] = Var[F_Mea_Dest];
+					if(0 == sDL212_Config.mode){
+					  printf("%c%c,v3,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[2]);
 					}
 				break;
 				case 2:
-					sEMData.value[2] = 0;
+					Value[2] = 0;
 					psSE_FUNC->out_ctrl(2,1);
 				break;
+				case 3:
+					Value[2] = 0;
+				  psSE_FUNC->out_ctrl(2,0);
+				break;
 				default:
 				break;
 			}
 			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v3 value:%.1f\r\n",sEMData.value[2]);USB_Send((unsigned char *)message,i); 
+		    i=sprintf(message,"v3 value:%.1f\r\n",Value[2]);USB_Send((unsigned char *)message,i); 
 			}
-			switch(sEMData.v4_func){
+			switch(sDL212_Config.port[3]){
 			  case 0:
-					sEMData.value[3] = psSE_FUNC->read(3);
-					if(0 == sEMData.usart_mode){
-					  printf("%c%c,v4,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[3]);
+					Value[3] = psSE_FUNC->read(3);
+					if(0 == sDL212_Config.mode){
+					  printf("%c%c,v4,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[3]);
 					}
 				break;
 				case 1:
-					sEMData.value[3] = Var[F_Mea_Dest];
-					if(0 == sEMData.usart_mode){
-					  printf("%c%c,v4,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[3]);
+					Value[3] = Var[F_Mea_Dest];
+					if(0 == sDL212_Config.mode){
+					  printf("%c%c,v4,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[3]);
 					}
 				break;
 				case 2:
-					sEMData.value[3] = 0;
+					Value[3] = 0;
 					psSE_FUNC->out_ctrl(3,1);
+				break;
+				case 3:
+					Value[3] = 0;
+				  psSE_FUNC->out_ctrl(3,0);
 				break;
 				default:
 				break;
 			}
 			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v4 value:%.1f\r\n",sEMData.value[3]);USB_Send((unsigned char *)message,i); 
+		    i=sprintf(message,"v4 value:%.1f\r\n",Value[3]);USB_Send((unsigned char *)message,i); 
 			}
-			if(0 == sEMData.f1_func){
-				sEMData.value[4] = Var[P_SW_Dest];
-				if(0 == sEMData.usart_mode){
-				  printf("%c%c,f1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[4]);
+			if(0 == sDL212_Config.port[4]){
+				Value[4] = Var[P_SW_Dest];
+				if(0 == sDL212_Config.mode){
+				  printf("%c%c,f1,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[4]);
 				}
 			}
-			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"f1 value:%.0f\r\n",sEMData.value[4]);USB_Send((unsigned char *)message,i); 
+			else{
+			  Value[4] = 0;
 			}
-			switch(sEMData.d1_func){
+			if(1 == DL212_Value_Display_Ctrl){
+		    i=sprintf(message,"f1 value:%.0f\r\n",Value[4]);USB_Send((unsigned char *)message,i); 
+			}
+			switch(sDL212_Config.port[5]){
 			  case 0:
-					sEMData.value[5] = Var[C1_Dest];
-				  if(0 == sEMData.usart_mode){
-				    printf("%c%c,d1,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[5]);
+					Value[5] = Var[C1_Dest];
+				  if(0 == sDL212_Config.mode){
+				    printf("%c%c,d1,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[5]);
 				  }
 				  if(1 == DL212_Value_Display_Ctrl){
-		        i=sprintf(message,"d1 value:%.0f\r\n",sEMData.value[5]);USB_Send((unsigned char *)message,i); 
+		        i=sprintf(message,"d1 value:%.0f\r\n",Value[5]);USB_Send((unsigned char *)message,i); 
 			    } 
 				break;
 				case 1:
-					SDI12Recorder(0,(unsigned char*)&sEMData.sdicmd[0][0]);
+					SDI12Recorder(0,(unsigned char*)&sDL212_Config.sdi12[0][0]);
 				break;
 				case 2: 
 					psC_OUT_Func->out(0,1);
 				break;
+				case 3:
+					Value[5] = 0;
+				  psC_OUT_Func->out(0,0);
+				break;
 				default:
 				break;
 			}
-			switch(sEMData.d2_func){
+			switch(sDL212_Config.port[6]){
 			  case 0:
-					sEMData.value[6] = Var[C2_Dest];
-				  if(0 == sEMData.usart_mode){
-				    printf("%c%c,d2,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[6]);
+					Value[6] = Var[C2_Dest];
+				  if(0 == sDL212_Config.mode){
+				    printf("%c%c,d2,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[6]);
 				  }
 				  if(1 == DL212_Value_Display_Ctrl){
-		        i=sprintf(message,"d2 value:%.0f\r\n\r\n",sEMData.value[6]);USB_Send((unsigned char *)message,i); 
+		        i=sprintf(message,"d2 value:%.0f\r\n\r\n",Value[6]);USB_Send((unsigned char *)message,i); 
 		    	} 
 				break;
 				case 1:
-					SDI12Recorder(1,(unsigned char*)&sEMData.sdicmd[1][0]);
+					SDI12Recorder(1,(unsigned char*)&sDL212_Config.sdi12[1][0]);
 				break;
 				case 2: 
 					psC_OUT_Func->out(1,1);
 				break;
+				case 3:
+					Value[6] = 0;
+				  psC_OUT_Func->out(1,0);
+				break;
 				default:
 				break;
 			} 
-			/*if(0 == sEMData.usart_mode){
-		    printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sEMData.addr_0,sEMData.addr_1,sEMData.value[0],sEMData.value[1],sEMData.value[2],sEMData.value[3],sEMData.value[4],sEMData.value[5],sEMData.value[6]);
+			/*if(0 == sDL212_Config.mode){
+		    printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[0],Value[1],Value[2],Value[3],Value[4],Value[5],Value[6]);
 			}*/
 	  }
 	} 
@@ -182,25 +209,25 @@ void DL212_EasyMode_ValueDisplay(void){
 }
 
 void DL212_EasyMode_Init(void){
-  EEPROM_Read((unsigned char*)&sEMData,EEPROM_BANK_START_ADDR,sizeof(sEMData));
+  EEPROM_Read((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config));
 	if(1 == DL212_EasyMode){ 
 		P_SW_Time  =C1_Time  =C2_Time  =F_Mea_Time  =1000;
 		P_SW_Option=C1_Option=C2_Option=F_Mea_Option=1;
 	  P_SW_Dest=0,C1_Dest=1,C2_Dest=2,F_Mea_Dest=3;
 		
-		if(sEMData.sw12_1_func){
+		if(sDL212_Config.port[7]){
 		  psSW12_Func->sw(0,1);
 		}
 		else{
 		  psSW12_Func->sw(0,0);   
 		}
-		if(sEMData.sw12_2_func){
+		if(sDL212_Config.port[8]){
 		  psSW12_Func->sw(1,1);
 		}
 		else{
 		  psSW12_Func->sw(1,0);   
 		}
-		switch(sEMData.v1_func){ 
+		switch(sDL212_Config.port[0]){ 
       case 1: 
 				psSE_FUNC->chan_open(0);
         TIM10_Init(1000);
@@ -211,7 +238,7 @@ void DL212_EasyMode_Init(void){
       default:
       break;
     }
-	  switch(sEMData.v2_func){ 
+	  switch(sDL212_Config.port[1]){ 
       case 1: 
 				psSE_FUNC->chan_open(1);
         TIM10_Init(1000);
@@ -222,7 +249,7 @@ void DL212_EasyMode_Init(void){
       default:
       break;
     }
-	  switch(sEMData.v3_func){ 
+	  switch(sDL212_Config.port[2]){ 
       case 1: 
 				psSE_FUNC->chan_open(2);
         TIM10_Init(1000);
@@ -233,7 +260,7 @@ void DL212_EasyMode_Init(void){
       default:
       break;
     }
-	  switch(sEMData.v4_func){ 
+	  switch(sDL212_Config.port[3]){ 
       case 1: 
 				psSE_FUNC->chan_open(3);
         TIM10_Init(1000);
@@ -244,7 +271,7 @@ void DL212_EasyMode_Init(void){
       default:
       break;
     }
-	  switch(sEMData.f1_func){
+	  switch(sDL212_Config.port[4]){
 	    case 0: 
 	      TIM6_Init(1000);
 	    break;
@@ -252,7 +279,7 @@ void DL212_EasyMode_Init(void){
 	      TIM_Cmd(TIM6,DISABLE);;
 	    break;  
 	  }
-	  switch(sEMData.d1_func){
+	  switch(sDL212_Config.port[5]){
 	    case 0: 
 	      psC_Pulse_Func->init(0);
 	      TIM7_Init(1000); 
@@ -265,7 +292,7 @@ void DL212_EasyMode_Init(void){
 	      psC_OUT_Func->init(0);
 	    break;
 	  }
-	  switch(sEMData.d2_func){
+	  switch(sDL212_Config.port[6]){
 	    case 0: 
 	      psC_Pulse_Func->init(1);
 	      TIM4_Init(1000); 
@@ -315,10 +342,10 @@ void DL212_EasyMode_Config(void){
 	    if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){ 
 			  timeout = 0; 
         if(0==strncmp("Y",(const char*)(sUSB_Para.rx_buf),1) || 0==strncmp("y",(const char*)(sUSB_Para.rx_buf),1)){ 
-					memset(&sEMData,0,sizeof(sEMData)); 
-					sEMData.scan_intvl=5,sEMData.addr_0='A',sEMData.addr_1='A'; 
-					sEMData.usart_baudrate=115200,sEMData.usart_mode=0,sEMData.modbus_address=1;
-          EEPROM_Write((unsigned char*)&sEMData,EEPROM_BANK_START_ADDR,sizeof(sEMData)); 
+					memset(&sDL212_Config,0,sizeof(sDL212_Config)); 
+					sDL212_Config.scan=5,sDL212_Config.mark[0]='A',sDL212_Config.mark[1]='A'; 
+					sDL212_Config.baudrate=115200,sDL212_Config.mode=0,sDL212_Config.modbus_addr=1;
+          EEPROM_Write((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config)); 
 					i=sprintf(message,"已恢复缺省配置,DL212简易模式运行中...\r\n\r\n");USB_Send((unsigned char *)message,i);					
 				  return; 
 			  } 
@@ -338,19 +365,19 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 2.
-		i=sprintf(message,"\r\n设备标识(%c%c):\r\n\r\n",sEMData.addr_0,sEMData.addr_1);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"\r\n设备标识(%c%c):\r\n\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA(); 
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0; 
 				if(0==isalnum(*sUSB_Para.rx_buf) || 0==isalnum(*(sUSB_Para.rx_buf+1)) ||  4!=sUSB_Para.rec_len){
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"\r\n设备标识(%c%c)\r\n\r\n",sEMData.addr_0,sEMData.addr_1);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"\r\n设备标识(%c%c)\r\n\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1]);USB_Send((unsigned char *)message,i);
 				}
         else{
-					 sEMData.addr_0=*(sUSB_Para.rx_buf),sEMData.addr_1=*(sUSB_Para.rx_buf+1);
-           EEPROM_Write((unsigned char*)&sEMData.addr_0,((unsigned int)&sEMData.addr_0-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.addr_0)); 
-           EEPROM_Write((unsigned char*)&sEMData.addr_1,((unsigned int)&sEMData.addr_1-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.addr_1)); 
+					 sDL212_Config.mark[0]=*(sUSB_Para.rx_buf),sDL212_Config.mark[1]=*(sUSB_Para.rx_buf+1);
+           EEPROM_Write((unsigned char*)&sDL212_Config.mark[0],((unsigned int)&sDL212_Config.mark[0]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.mark[0])); 
+           EEPROM_Write((unsigned char*)&sDL212_Config.mark[1],((unsigned int)&sDL212_Config.mark[1]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.mark[1])); 
   			   i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					 break;
 				}	 
@@ -363,21 +390,21 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 3.
-		i=sprintf(message,"测量时间间隔(%d)(秒):\r\n\r\n",sEMData.scan_intvl);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"测量时间间隔(%d)(秒):\r\n\r\n",sDL212_Config.scan);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(i <= 86400){
-					sEMData.scan_intvl = i; 
-					EEPROM_Write((unsigned char*)&sEMData.scan_intvl,((unsigned int)&sEMData.scan_intvl-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.scan_intvl)); 
+					sDL212_Config.scan = i; 
+					EEPROM_Write((unsigned char*)&sDL212_Config.scan,((unsigned int)&sDL212_Config.scan-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.scan)); 
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i); 
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-					i=sprintf(message,"测量时间间隔(%d)(秒):\r\n\r\n",sEMData.scan_intvl);USB_Send((unsigned char *)message,i);
+					i=sprintf(message,"测量时间间隔(%d)(秒):\r\n\r\n",sDL212_Config.scan);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -388,14 +415,14 @@ void DL212_EasyMode_Config(void){
 			return; 
 		} 
 		//step 4.
-		i=sprintf(message,"V1端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v1_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"V1端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[0]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i || 2==i){
-					sEMData.v1_func = i;
+					sDL212_Config.port[0] = i;
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					switch(i){ 
 						case 1: 
@@ -408,12 +435,12 @@ void DL212_EasyMode_Config(void){
 						default:
 						break;
 					}
-          EEPROM_Write((unsigned char*)&sEMData.v1_func,((unsigned int)&sEMData.v1_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.v1_func)); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.port[0],((unsigned int)&sDL212_Config.port[0]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[0])); 
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"V1端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v1_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"V1端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[0]);USB_Send((unsigned char *)message,i);
 				}
 				sUSB_Para.rec_len = 0;
 			} 
@@ -424,14 +451,14 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 5.
-		i=sprintf(message,"V2端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v2_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"V2端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[1]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i || 2==i){
-					sEMData.v2_func = i;
+					sDL212_Config.port[1] = i;
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					switch(i){ 
 						case 1: 
@@ -444,12 +471,12 @@ void DL212_EasyMode_Config(void){
 						default:
 						break;
 					}
-          EEPROM_Write((unsigned char*)&sEMData.v2_func,((unsigned int)&sEMData.v2_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.v2_func)); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.port[1],((unsigned int)&sDL212_Config.port[1]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[1])); 
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"V2端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v2_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"V2端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[1]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -460,14 +487,14 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 6.
-		i=sprintf(message,"V3端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v3_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"V3端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[2]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i || 2==i){
-					sEMData.v3_func = i;
+					sDL212_Config.port[2] = i;
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					switch(i){ 
 						case 1: 
@@ -480,12 +507,12 @@ void DL212_EasyMode_Config(void){
 						default:
 						break;
 					}
-          EEPROM_Write((unsigned char*)&sEMData.v3_func,((unsigned int)&sEMData.v3_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.v3_func)); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.port[2],((unsigned int)&sDL212_Config.port[2]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[2])); 
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"V3端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v3_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"V3端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[2]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -496,14 +523,14 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 7.
-		i=sprintf(message,"V4端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v4_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"V4端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[3]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i || 2==i){
-					sEMData.v4_func = i;
+					sDL212_Config.port[3] = i;
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					switch(i){ 
 						case 1: 
@@ -516,12 +543,12 @@ void DL212_EasyMode_Config(void){
 						default:
 						break;
 					}
-          EEPROM_Write((unsigned char*)&sEMData.v4_func,((unsigned int)&sEMData.v4_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.v4_func)); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.port[3],((unsigned int)&sDL212_Config.port[3]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[3])); 
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"V4端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sEMData.v4_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"V4端口功能选择[0.模拟量测量1.数字量测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[3]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -532,14 +559,14 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 8.
-		i=sprintf(message,"F1端口设置[0.数字量测量1.禁用](%d):\r\n\r\n",sEMData.f1_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"F1端口设置[0.数字量测量1.禁用](%d):\r\n\r\n",sDL212_Config.port[4]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i){
-					sEMData.f1_func = i;
+					sDL212_Config.port[4] = i;
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					switch(i){
 					  case 0: 
@@ -549,12 +576,12 @@ void DL212_EasyMode_Config(void){
 				      TIM_Cmd(TIM6,DISABLE);;
 						break; 
 					}
-          EEPROM_Write((unsigned char*)&sEMData.f1_func,((unsigned int)&sEMData.f1_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.f1_func)); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.port[4],((unsigned int)&sDL212_Config.port[4]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[4])); 
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"F1端口设置[0.数字量测量1.禁用](%d):\r\n\r\n",sEMData.f1_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"F1端口设置[0.数字量测量1.禁用](%d):\r\n\r\n",sDL212_Config.port[4]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -565,14 +592,14 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 9. 
-		i=sprintf(message,"D1端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sEMData.d1_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"D1端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[5]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf); 
 				if(0==i || 1==i || 2==i){
-					sEMData.d1_func = i;
+					sDL212_Config.port[5] = i;
 				  USB_Send((unsigned char *)message,sprintf(message,"ok\r\n\r\n"));
 					sUSB_Para.rec_len = 0;
 					switch(i){
@@ -582,20 +609,20 @@ void DL212_EasyMode_Config(void){
 						break;
 						case 1: 
 							psSDI12_Func->init(0); 
-						  //i=sprintf(message,"D1端口SDI-12命令设置,以逗号为分隔符(%s):\r\n\r\n",&sEMData.sdicmd[0][0]);USB_Send((unsigned char *)message,i);
-              if(sEMData.sdicmd[0][0] != 0){           
-  						  i=sprintf(message,"D1端口SDI-12命令设置,以逗号为分隔符(%s",&sEMData.sdicmd[0][0]);
+						  //i=sprintf(message,"D1端口SDI-12命令设置,以逗号为分隔符(%s):\r\n\r\n",&sDL212_Config.sdi12[0][0]);USB_Send((unsigned char *)message,i);
+              if(sDL212_Config.sdi12[0][0] != 0){           
+  						  i=sprintf(message,"D1端口SDI-12命令设置(%s",&sDL212_Config.sdi12[0][0]);
 						    USB_Send((unsigned char *)message,i-2);
                 i=sprintf(message,"):\r\n\r\n");USB_Send((unsigned char *)message,i); 
 							}					 
  							else{
-							  i=sprintf(message,"D1端口SDI-12命令设置,以逗号为分隔符():\r\n\r\n");USB_Send((unsigned char *)message,i); 
+							  i=sprintf(message,"D1端口SDI-12命令设置():\r\n\r\n");USB_Send((unsigned char *)message,i); 
 							}
 						  while('\r'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) || '\n'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
                 CDC_Receive_DATA();  
 							}
-							strcpy(&sEMData.sdicmd[0][0],(const char*)sUSB_Para.rx_buf);
-							sEMData.sdicmd[0][sUSB_Para.rec_len] = 0;
+							strcpy(&sDL212_Config.sdi12[0][0],(const char*)sUSB_Para.rx_buf);
+							sDL212_Config.sdi12[0][sUSB_Para.rec_len] = 0;
               i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);  							
 						break;
 						case 2: 
@@ -603,13 +630,13 @@ void DL212_EasyMode_Config(void){
 						  psC_OUT_Func->init(0);
 						break;
 					} 
-          EEPROM_Write((unsigned char*)&sEMData.d1_func,((unsigned int)&sEMData.d1_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.d1_func)); 
-          EEPROM_Write((unsigned char*)&sEMData.sdicmd[0][0],((unsigned int)&sEMData.sdicmd[0][0]-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),440); 				
+          EEPROM_Write((unsigned char*)&sDL212_Config.port[5],((unsigned int)&sDL212_Config.port[5]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[5])); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.sdi12[0][0],((unsigned int)&sDL212_Config.sdi12[0][0]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),440); 				
 					break;
 				} 
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"D1端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sEMData.d1_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"D1端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[5]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -620,14 +647,14 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 10.
-		i=sprintf(message,"D2端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sEMData.d2_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"D2端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[6]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i || 2==i){
-					sEMData.d2_func = i;
+					sDL212_Config.port[6] = i;
 				  USB_Send((unsigned char *)message,sprintf(message,"ok\r\n\r\n"));
 					sUSB_Para.rec_len = 0;
 					switch(i){
@@ -637,20 +664,20 @@ void DL212_EasyMode_Config(void){
 						break;
 						case 1: 
 							psSDI12_Func->init(1);
-						  //i=sprintf(message,"D2端口SDI-12命令设置,以逗号为分隔符(%s):\r\n\r\n",&sEMData.sdicmd[1][0]);USB_Send((unsigned char *)message,i);						
-              if(sEMData.sdicmd[1][0] != 0){
-							  i=sprintf(message,"D2端口SDI-12命令设置,以逗号为分隔符(%s",&sEMData.sdicmd[1][0]);
+						  //i=sprintf(message,"D2端口SDI-12命令设置,以逗号为分隔符(%s):\r\n\r\n",&sDL212_Config.sdi12[1][0]);USB_Send((unsigned char *)message,i);						
+              if(sDL212_Config.sdi12[1][0] != 0){
+							  i=sprintf(message,"D2端口SDI-12命令设置(%s",&sDL212_Config.sdi12[1][0]);
 						    USB_Send((unsigned char *)message,i-2);
                 i=sprintf(message,"):\r\n\r\n");USB_Send((unsigned char *)message,i); 
 							}
 	  					else{
-							  i=sprintf(message,"D2端口SDI-12命令设置,以逗号为分隔符():\r\n\r\n");USB_Send((unsigned char *)message,i); 
+							  i=sprintf(message,"D2端口SDI-12命令设置	():\r\n\r\n");USB_Send((unsigned char *)message,i); 
 							}
   						while('\r'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) || '\n'!=*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
                 CDC_Receive_DATA();  
 							}
-							strcpy(&sEMData.sdicmd[1][0],(const char*)sUSB_Para.rx_buf);
-							sEMData.sdicmd[1][sUSB_Para.rec_len] = 0;
+							strcpy(&sDL212_Config.sdi12[1][0],(const char*)sUSB_Para.rx_buf);
+							sDL212_Config.sdi12[1][sUSB_Para.rec_len] = 0;
               i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);	
 						break;
 						case 2: 
@@ -658,13 +685,13 @@ void DL212_EasyMode_Config(void){
 						  psC_OUT_Func->init(1);
 						break;
 					} 
-          EEPROM_Write((unsigned char*)&sEMData.d2_func,((unsigned int)&sEMData.d2_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.d2_func)); 
-          EEPROM_Write((unsigned char*)&sEMData.sdicmd[1][0],((unsigned int)&sEMData.sdicmd[1][0]-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),440); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.port[6],((unsigned int)&sDL212_Config.port[6]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[6])); 
+          EEPROM_Write((unsigned char*)&sDL212_Config.sdi12[1][0],((unsigned int)&sDL212_Config.sdi12[1][0]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),440); 
 					break;
 				} 
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"D2端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sEMData.d2_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"D2端口设置[0.数字量测量1.SDI12测量2.开关输出](%d):\r\n\r\n",sDL212_Config.port[6]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -675,21 +702,21 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 11.
-		i=sprintf(message,"SW12-1端口设置[0.禁用1.使能](%d):\r\n\r\n",sEMData.sw12_1_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"SW12-1端口设置[0.禁用1.使能](%d):\r\n\r\n",sDL212_Config.port[7]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i){		
-					sEMData.sw12_1_func = i;
-					EEPROM_Write((unsigned char*)&sEMData.sw12_1_func,((unsigned int)&sEMData.sw12_1_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.sw12_1_func)); 
+					sDL212_Config.port[7] = i;
+					EEPROM_Write((unsigned char*)&sDL212_Config.port[7],((unsigned int)&sDL212_Config.port[7]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[7])); 
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"SW12-1端口设置[0.禁用1.使能](%d):\r\n\r\n",sEMData.sw12_1_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"SW12-1端口设置[0.禁用1.使能](%d):\r\n\r\n",sDL212_Config.port[7]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -700,21 +727,21 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 12.
-		i=sprintf(message,"SW12-2端口设置[0.禁用1.使能](%d):\r\n\r\n",sEMData.sw12_2_func);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"SW12-2端口设置[0.禁用1.使能](%d):\r\n\r\n",sDL212_Config.port[8]);USB_Send((unsigned char *)message,i);
 		while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i){
-					sEMData.sw12_2_func = i;
-					EEPROM_Write((unsigned char*)&sEMData.sw12_2_func,((unsigned int)&sEMData.sw12_2_func-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.sw12_2_func)); 
+					sDL212_Config.port[8] = i;
+					EEPROM_Write((unsigned char*)&sDL212_Config.port[8],((unsigned int)&sDL212_Config.port[8]-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.port[8])); 
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"SW12-2端口设置[0.禁用1.使能](%d):\r\n\r\n",sEMData.sw12_2_func);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"SW12-2端口设置[0.禁用1.使能](%d):\r\n\r\n",sDL212_Config.port[8]);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -726,22 +753,22 @@ void DL212_EasyMode_Config(void){
 		}
 		
 		//step 13.
-		i=sprintf(message,"\r\n串口波特率(%d):\r\n\r\n",sEMData.usart_baudrate);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"\r\n串口波特率(%d):\r\n\r\n",sDL212_Config.baudrate);USB_Send((unsigned char *)message,i);
     while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(1200==i || 2400==i || 4800==i || 9600==i || 14400==i || 19200==i || 38400==i || 57600==i || 115200==i){
-					sEMData.usart_baudrate = i;
+					sDL212_Config.baudrate = i;
 					USART1_Config(i);
-					EEPROM_Write((unsigned char*)&sEMData.usart_baudrate,((unsigned int)&sEMData.usart_baudrate-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.usart_baudrate)); 
+					EEPROM_Write((unsigned char*)&sDL212_Config.baudrate,((unsigned int)&sDL212_Config.baudrate-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.baudrate)); 
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-       		i=sprintf(message,"\r\n串口波特率(%d):\r\n\r\n",sEMData.usart_baudrate);USB_Send((unsigned char *)message,i);
+       		i=sprintf(message,"\r\n串口波特率(%d):\r\n\r\n",sDL212_Config.baudrate);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -752,21 +779,21 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 14.
-		i=sprintf(message,"\r\nmodbus从机地址设置(%d):\r\n\r\n",sEMData.modbus_address);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"\r\nmodbus从机地址设置(%d):\r\n\r\n",sDL212_Config.modbus_addr);USB_Send((unsigned char *)message,i);
     while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(i>=1 && i<=247){
-					sEMData.modbus_address = i; 
-					EEPROM_Write((unsigned char*)&sEMData.modbus_address,((unsigned int)&sEMData.modbus_address-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.usart_mode)); 
+					sDL212_Config.modbus_addr = i; 
+					EEPROM_Write((unsigned char*)&sDL212_Config.modbus_addr,((unsigned int)&sDL212_Config.modbus_addr-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.mode)); 
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-	      	i=sprintf(message,"\r\nmodbus从机地址设置(%d):\r\n\r\n",sEMData.modbus_address);USB_Send((unsigned char *)message,i);
+	      	i=sprintf(message,"\r\nmodbus从机地址设置(%d):\r\n\r\n",sDL212_Config.modbus_addr);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -777,22 +804,22 @@ void DL212_EasyMode_Config(void){
 			return;
 		}
 		//step 15.
-		i=sprintf(message,"\r\n串口模式选择[0.ascii自动发送1.modbus模式](%d):\r\n\r\n",sEMData.usart_mode);USB_Send((unsigned char *)message,i);
+		i=sprintf(message,"\r\n串口模式选择[0.ascii自动发送1.modbus模式](%d):\r\n\r\n",sDL212_Config.mode);USB_Send((unsigned char *)message,i);
     while(timeout++ < 0xF0000000){
 		  CDC_Receive_DATA();
 		  if('\r'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-2) && '\n'==*(sUSB_Para.rx_buf+sUSB_Para.rec_len-1)){
 				timeout = 0;
 			  i = atoi((const char*)sUSB_Para.rx_buf);
 				if(0==i || 1==i){
-					sEMData.usart_mode = i;
-					EEPROM_Write((unsigned char*)&sEMData.usart_mode,((unsigned int)&sEMData.usart_mode-(unsigned int)&sEMData+EEPROM_BANK_START_ADDR),sizeof(sEMData.usart_mode)); 
+					sDL212_Config.mode = i;
+					EEPROM_Write((unsigned char*)&sDL212_Config.mode,((unsigned int)&sDL212_Config.mode-(unsigned int)&sDL212_Config+EEPROM_BANK_START_ADDR),sizeof(sDL212_Config.mode)); 
 				  i=sprintf(message,"ok\r\n\r\n");USB_Send((unsigned char *)message,i);
 			  	i=sprintf(message,"配置完成,DL212简易模式运行中...\r\n\r\n");USB_Send((unsigned char *)message,i);
 					break;
 				}
 				else{
 				  i=sprintf(message,"输入有误,请重新输入\r\n\r\n");USB_Send((unsigned char *)message,i);
-		      i=sprintf(message,"\r\n串口模式选择[0.ascii自动发送1.modbus](%d):\r\n\r\n",sEMData.usart_mode);USB_Send((unsigned char *)message,i);
+		      i=sprintf(message,"\r\n串口模式选择[0.ascii自动发送1.modbus](%d):\r\n\r\n",sDL212_Config.mode);USB_Send((unsigned char *)message,i);
 				} 
 				sUSB_Para.rec_len = 0; 
 			} 
@@ -807,3 +834,51 @@ void DL212_EasyMode_Config(void){
 	  return;
 	}
 } 
+
+ 
+unsigned char LRC( unsigned char *buf,unsigned short int len){
+  unsigned char lrc=0;
+
+  while(len--){
+    lrc += *buf++;
+  }  
+  lrc = (unsigned char)(-((char)lrc));
+	
+  return lrc;
+}
+
+void DL212_Config_Utility(void){
+  unsigned int i=0,timeout=0;
+	char message[10],*p;
+  unsigned char lrc=0;	
+	
+  if(0 == strncmp("DL212 Configuration Utility Write",(const char*)(sUSB_Para.rx_buf),34)){  
+		sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
+    p = (char *)&sDL212_Config;		
+		while(i<sizeof(sDL212_Config) && timeout++<0x100000){	
+			CDC_Receive_DATA();	
+      if(sUSB_Para.packet_rec){ 
+				timeout = 0;				
+		    memcpy((char *)(p+i),sUSB_Para.rx_buf,sUSB_Para.rec_len);	 	 
+			  i += sUSB_Para.rec_len;	 
+			  sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 	
+			}	
+		} 
+	  lrc = LRC((unsigned char*)p,sizeof(sDL212_Config)-4);  	
+	  if(lrc == sDL212_Config.lrc){
+			i=sprintf(message,"lrc ok\r\n");USB_Send((unsigned char *)message,i);	
+			EEPROM_Write((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config)); 
+	  }	
+	  else{	
+	    i=sprintf(message,"lrc error\r\n");USB_Send((unsigned char *)message,i);	
+	  }
+  }
+	else if(0 == strncmp("DL212 Configuration Utility Read",(const char*)(sUSB_Para.rx_buf),33)){ 
+		sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
+		p = (char *)&sDL212_Config;		
+	  USB_Send((unsigned char*)&sDL212_Config,sizeof(sDL212_Config));
+	}
+}
+
+
+
