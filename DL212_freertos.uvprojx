@@ -717,6 +717,11 @@
               <FileType>1</FileType>
               <FilePath>.\SRC&amp;INH\hw\hw_usb.c</FilePath>
             </File>
+            <File>
+              <FileName>ads1248.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SRC&amp;INH\hw\ads1248.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -868,7 +868,8 @@ void DL212_Config_Utility(void){
 	  if(lrc == sDL212_Config.lrc){
 			i=sprintf(message,"lrc ok\r\n");USB_Send((unsigned char *)message,i);	
 			EEPROM_Write((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config)); 
-	  }	
+	    DL212_EasyMode_Init();
+		}	
 	  else{	
 	    i=sprintf(message,"lrc error\r\n");USB_Send((unsigned char *)message,i);	
 	  }

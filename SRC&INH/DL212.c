@@ -11,7 +11,7 @@
 
 struct _NUM sNUM; 
 struct _TABLE_PARA sTABLE_PARA[4]; 
-float Var[PUBLIC_NUM_MAX+DIM_NUM_MAX]={0.1,1.1,2.2,3.3,4.4,5.5,6.6,7.7,8.8,9.9}; 
+float Var[PUBLIC_NUM_MAX+DIM_NUM_MAX]={0}; 
 float Var_Avg[PUBLIC_NUM_MAX+DIM_NUM_MAX]; 
 float Var_Max[PUBLIC_NUM_MAX+DIM_NUM_MAX]; 
 float Var_Min[PUBLIC_NUM_MAX+DIM_NUM_MAX]; 
