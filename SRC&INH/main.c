@@ -11,7 +11,10 @@
 /* Modbus Includes -----------------------------------------------------------*/
 #include "usart_idle_dma_modbus.h"   
 #include "portfunction.h"
- 
+//new
+#include "ads1248.h"
+#include "dl212_ads1248.h"
+//#include "pcf8563.h"
 TaskHandle_t Task_Start_Handler; 
 TaskHandle_t Task1_Handler; 
 TaskHandle_t Task2_Handler; 
@@ -61,22 +64,30 @@ void Task_Start(void *pvParameters){
 	  while(1); 
 	}
 	My_USB_Init(); 
-	psSE_FUNC->init(); 
+	UserGpio_Config();
 	psFram_Func->init(); 
-  psFlash_Func->init();  
-	psSW12_Func->init();//SW12控制口初始化
-	psC_Pulse_Func->init(0);//C1脉冲测量
-	psC_Pulse_Func->init(1);//C2脉冲测量  
+  psFlash_Func->init(); 
+	ADS1248_SPI_Init(); 
+	ADS1248_GPIO_Init(); 
+	ADS1248SetVoltageReference(1); 
+	
+	//ADS1248SetGain(ADS1248_GAIN_1);
+	//ADS1248SetDataRate(ADS1248_DR_1000);
+	//ADS1248SetChannel(ADS1248_AINP0,ADS1248_AINN1);
+	//psSE_FUNC->init();  
+	//psSW12_Func->init();//SW12控制口初始化
+	//psC_Pulse_Func->init(0);//C1脉冲测量
+	//psC_Pulse_Func->init(1);//C2脉冲测量  
 	//psSDI12_Func->init(0);
 	//psSDI12_Func->init(1);
  // sDL212_State.battery = psSE_FUNC->bat_read();
  // psSE_FUNC->vref_read(); 
-  I2C_RTC_Init(); 
-  TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
-  TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
-  TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
-	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1)  
-	SDI12_C1_SEND_DISABLE();
+  ////////I2C_RTC_Init(); 
+  //TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
+  //TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
+  //TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
+	//TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1)  
+	//SDI12_C1_SEND_DISABLE();
 	//psC_RS232_Func->init(0,0);  
 	/*OneShotTimer_Handle = xTimerCreate((const char*)"OneShotTimer",
 		                                 (TickType_t)200,//200ms
@@ -90,40 +101,47 @@ void Task_Start(void *pvParameters){
                 (UBaseType_t    )2,	
                 (TaskHandle_t*  )&Task1_Handler); 
 
-    xTaskCreate((TaskFunction_t )Task2,
+    /*xTaskCreate((TaskFunction_t )Task2,
                 (const char*    )"task for ...",   
                 (uint16_t       )1024, 
                 (void*          )NULL,
                 (UBaseType_t    )1,
-                (TaskHandle_t*  )&Task2_Handler); 
-	  xTaskCreate((TaskFunction_t )Task3,     
+                (TaskHandle_t*  )&Task2_Handler);*/
+	  /*xTaskCreate((TaskFunction_t )Task3,     
                 (const char*    )"task for ...",   
                 (uint16_t       )1024, 
                 (void*          )NULL,
                 (UBaseType_t    )1,
-                (TaskHandle_t*  )&Task3_Handler); 
+                (TaskHandle_t*  )&Task3_Handler); */
     vTaskDelete(Task_Start_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区
 }
   
 unsigned int DL212_EasyMode_Scan_Count=0; 
+float tadc=0,bat=0;
 void Task1(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
-	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
-	 
-	DL212_EasyMode_Init(); 
+	const TickType_t xPeriod=pdMS_TO_TICKS(1000);  
+	
+	//DL212_EasyMode_Init(); 
 	//xLastWakeTime = xTaskGetTickCount(); 
+	
   while(1){ 
     //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
-		vTaskDelay(1000);
-		if(DL212_EasyMode){ 
+		//vTaskDelay(1000);
+		ADS1248SetChannel(0,0);
+	  ADS1248SetChannel(1,1);
+		//vTaskDelay(250);
+		tadc = (float)ADS1248RDATARead()*3/0x7FFFFF;
+		bat = Battery();
+		/*if(DL212_EasyMode){ 
       DL212_EasyMode_Scan(); 
       DL212_EasyMode_Scan_Count++; 
 			memcpy(usRegInputBuf,Value,28); 
 		} 
 		else{ 
 		  vTaskSuspend(Task1_Handler); 
-		} 
+		} */
 	} 
 } 
 
@@ -199,26 +217,15 @@ void OneShotCallback(TimerHandle_t xTimer){
 void UserGpio_Config(void){
 	GPIO_InitTypeDef  GPIO_InitStructure;
 	
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB|RCC_AHBPeriph_GPIOC,ENABLE); 
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC,ENABLE); 
 	
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5|GPIO_Pin_8|GPIO_Pin_9;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_40MHz;
   GPIO_Init(GPIOB,&GPIO_InitStructure);
 	
-	GPIOB->BSRRL = GPIO_Pin_5;
- 
-	//2.5v and ref
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-	//se1-se4
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
-	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AN; 
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; 
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIOC->BSRRL = GPIO_Pin_7; 
 }
   

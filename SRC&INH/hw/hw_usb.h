@@ -35,13 +35,13 @@
 #include "usb_type.h"
 
  
-#define USB_DETECT_PIN           GPIO_Pin_15
-#define USB_DETECT_PORT          GPIOB
-#define USB_DETECT_CLK           RCC_AHBPeriph_GPIOB
-#define USB_DETECT_PINSOURCE     EXTI_PinSource15
-#define USB_DETECT_PORTSOURCE    EXTI_PortSourceGPIOB
-#define USB_DETECT_EXTI_LINE     EXTI_Line15
-#define USB_DETECT_EXTI_IRQn     EXTI15_10_IRQn
+#define USB_DETECT_PIN           GPIO_Pin_8
+#define USB_DETECT_PORT          GPIOC
+#define USB_DETECT_CLK           RCC_AHBPeriph_GPIOC
+#define USB_DETECT_PINSOURCE     EXTI_PinSource8
+#define USB_DETECT_PORTSOURCE    EXTI_PortSourceGPIOC
+#define USB_DETECT_EXTI_LINE     EXTI_Line8
+#define USB_DETECT_EXTI_IRQn     EXTI9_5_IRQn
 #define USB_DETECT()             GPIO_ReadInputDataBit(USB_DETECT_PORT,USB_DETECT_PIN)
 
 #define MASS_MEMORY_START     0x04002000

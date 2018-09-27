@@ -58,7 +58,7 @@ char CMD_Pointer_Init(void);
 unsigned int Func_DataTable(char *cmd); 
 unsigned int Func_CallSub(char *cmd);
 
-void Battery(double *para); 
+float Battery(double *para); 
 void VGet(double *para);  
 void PulseCount(double *para); 
 void ExciteV(double *para);

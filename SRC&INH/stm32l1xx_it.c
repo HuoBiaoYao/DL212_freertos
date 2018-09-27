@@ -17,7 +17,7 @@ void EXTI2_IRQHandler(void){
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
   
-void EXTI15_10_IRQHandler(void){
+void EXTI9_5_IRQHandler(void){
 	unsigned int i=0;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	

@@ -8,6 +8,7 @@
 #include "hw.h"
 #include "delay.h"
 #include "stm32l1xx_it.h"
+#include "ads1248.h"
 
 struct _NUM sNUM; 
 struct _TABLE_PARA sTABLE_PARA[4]; 
@@ -517,8 +518,17 @@ char CMD_Pointer_Init(void){
 }
 
 
-void Battery(double *para){ 
-	*para = psSE_FUNC->bat_read();
+float Battery(double *para){ 
+	float adc=0; 
+	
+  ADS1248SetChannel(2,0);
+	ADS1248SetChannel(3,1);
+	//vTaskDelay(250);
+  adc = ADS1248RDATARead();
+	adc = adc*3/0x7FFFFF;
+	adc = adc*268/68;
+	
+	return adc;
 }
   
 void VGet(double *para){ 
