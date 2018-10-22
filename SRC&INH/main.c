@@ -52,10 +52,18 @@ int main(void){
 	psSW12_Func->sw(0,1);
 	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1) 
   TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
-	TIM10_Init(1000);
-	TIM6_Init(1000);
-	P_SW_Time = F_Mea_Time=1000;
-	
+	if(sDL212_Config.mea_time[0]){
+	  TIM10_Init(sDL212_Config.mea_time[0]);
+	}
+	else{
+	  TIM10_Init(1000);
+	} 
+	if(sDL212_Config.mea_time[1]){
+	  TIM6_Init(sDL212_Config.mea_time[1]);
+	}
+	else{
+	  TIM6_Init(1000);
+	}   
 	//delay_ms(3000); 
   //DBGMCU_Config(DBGMCU_SLEEP,ENABLE);
 	//创建开始任务
@@ -185,16 +193,12 @@ void Task3(void *pvParameters){
 	portTickType xLastWakeTime; 
   unsigned char i=0;
 	
-	while(i<=10 && 0==sDL212_Config.baudrate){
-	  i++;
-		vTaskDelay(100);
-	}
-	sMBSlave.init(sDL212_Config.baudrate); 
+	sMBSlave.init(115200); 
 	while(1){ 
 	  if(BinarySemaphore_MB != NULL){ 
       if(xSemaphoreTake(BinarySemaphore_MB,portMAX_DELAY) == pdTRUE){ 
 				if(1 == sDL212_Config.mode){
-					ucMBAddress = sDL212_Config.modbus_addr;
+					//ucMBAddress = sDL212_Config.modbus_addr;
 				  sMBSlave.poll();
 				}
         else{

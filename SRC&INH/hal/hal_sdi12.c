@@ -425,7 +425,7 @@ void SDI12_DataProcess(unsigned char port){
     USB_Send(sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr); 
    // SDI12_Data_Bytes[port] += sSDI12_Para[port].rx_ptr;
   }
-	if(0 == sDL212_Config.mode){
+	//if(0 == sDL212_Config.mode){
     //printf("%c%c,%s",sEMData.addr_0,sEMData.addr_1,sSDI12_Para[port].rx_buf);
 		i=0;
 		while(*(sSDI12_Para[port].rx_buf+j) != '\r'){
@@ -438,8 +438,8 @@ void SDI12_DataProcess(unsigned char port){
 			}
 		}
 		*(message+i++) = '\r',*(message+i++) = '\n',*(message+i++) = 0;
-		printf("%c%c,d%d,%s",sDL212_Config.mark[0],sDL212_Config.mark[1],port+1,message);
-  }
+		printf("%c%c,d%d,%s",sDL212_Config.device_id[0],sDL212_Config.device_id[1],port+1,message);
+  //}
 }
 
 /*void SDI12_DataProcess(unsigned char port){
