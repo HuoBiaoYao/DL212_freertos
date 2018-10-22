@@ -66,7 +66,7 @@ void SPI_FRAM_Init(void){
   GPIO_PinAFConfig(FRAM_SPI_SO_GPIO_PORT,  FRAM_SPI_SO_SOURCE,  FRAM_SPI_SO_AF); 
   GPIO_PinAFConfig(FRAM_SPI_SI_GPIO_PORT,  FRAM_SPI_SI_SOURCE,  FRAM_SPI_SI_AF);  
  
-  SPI_FRAM_ENABLE();
+  SPI_FRAM_DISABLE();
 	 
   SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
   SPI_InitStructure.SPI_Mode = SPI_Mode_Master;

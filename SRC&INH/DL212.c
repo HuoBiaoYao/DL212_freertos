@@ -522,11 +522,10 @@ float Battery(double *para){
 	float adc=0; 
 	
   ADS1248SetChannel(2,0);
-	ADS1248SetChannel(3,1);
-	//vTaskDelay(250);
+	ADS1248SetChannel(3,1); 
   adc = ADS1248RDATARead();
 	adc = adc*3/0x7FFFFF;
-	adc = adc*268/68;
+	adc = adc*251/51;
 	
 	return adc;
 }

@@ -14,7 +14,10 @@
 //new
 #include "ads1248.h"
 #include "dl212_ads1248.h"
-//#include "pcf8563.h"
+#include "iic.h"
+#include "pcf8563.h"
+#include "mcp4725.h"
+
 TaskHandle_t Task_Start_Handler; 
 TaskHandle_t Task1_Handler; 
 TaskHandle_t Task2_Handler; 
@@ -32,9 +35,27 @@ TimerHandle_t OneShotTimer_Handle;
 int main(void){
 	unsigned int i;
   
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //设置系统中断优先级分组4	 	 
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //设置系统中断优先级分组4
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA|RCC_AHBPeriph_GPIOB|RCC_AHBPeriph_GPIOC|RCC_AHBPeriph_GPIOD,ENABLE); 
 	delay_init(); //延时函数初始化 
+	USART1_Config(115200);
+	My_USB_Init(); 
+	UserGpio_Config();  
+	IIC_PCF_GPIO_Init();
+	//PCF8563_Config(); 
+	psFram_Func->init(); 
+  psFlash_Func->init(); 
+	psSDI12_Func->init(0);	
+	psSDI12_Func->init(1); 
+  psSW12_Func->init();//SW12控制口初始化
+	psSW12_Func->sw(0,1);
+	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1) 
+  TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
+	TIM10_Init(1000);
+	TIM6_Init(1000);
+	P_SW_Time = F_Mea_Time=1000;
+	
 	//delay_ms(3000); 
   //DBGMCU_Config(DBGMCU_SLEEP,ENABLE);
 	//创建开始任务
@@ -62,31 +83,21 @@ void Task_Start(void *pvParameters){
 		 BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL ||
 	   xSemaphore==NULL){
 	  while(1); 
-	}
-	My_USB_Init(); 
-	UserGpio_Config();
-	psFram_Func->init(); 
-  psFlash_Func->init(); 
-	ADS1248_SPI_Init(); 
-	ADS1248_GPIO_Init(); 
-	ADS1248SetVoltageReference(1); 
+	} 
 	
-	//ADS1248SetGain(ADS1248_GAIN_1);
-	//ADS1248SetDataRate(ADS1248_DR_1000);
-	//ADS1248SetChannel(ADS1248_AINP0,ADS1248_AINN1);
-	//psSE_FUNC->init();  
-	//psSW12_Func->init();//SW12控制口初始化
+	ADS1248_SPI_Init(); 
+	ADS1248_GPIO_Init();
+	ADS1248SetVoltageReference(1); 	 
+  ADS1248SetGain(0); 
+	ADS1248SetDataRate(9);   
+
 	//psC_Pulse_Func->init(0);//C1脉冲测量
-	//psC_Pulse_Func->init(1);//C2脉冲测量  
-	//psSDI12_Func->init(0);
-	//psSDI12_Func->init(1);
+	//psC_Pulse_Func->init(1);//C2脉冲测量   
  // sDL212_State.battery = psSE_FUNC->bat_read();
- // psSE_FUNC->vref_read(); 
-  ////////I2C_RTC_Init(); 
-  //TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
+ // psSE_FUNC->vref_read();  
+	
   //TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
   //TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
-	//TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1)  
 	//SDI12_C1_SEND_DISABLE();
 	//psC_RS232_Func->init(0,0);  
 	/*OneShotTimer_Handle = xTimerCreate((const char*)"OneShotTimer",
@@ -118,22 +129,19 @@ void Task_Start(void *pvParameters){
 }
   
 unsigned int DL212_EasyMode_Scan_Count=0; 
-float tadc=0,bat=0;
+float volt[3];
 void Task1(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000);  
 	
 	//DL212_EasyMode_Init(); 
-	//xLastWakeTime = xTaskGetTickCount(); 
-	
-  while(1){ 
+	//xLastWakeTime = xTaskGetTickCount();  
+  while(1){  
     //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
-		//vTaskDelay(1000);
-		ADS1248SetChannel(0,0);
-	  ADS1248SetChannel(1,1);
-		//vTaskDelay(250);
-		tadc = (float)ADS1248RDATARead()*3/0x7FFFFF;
-		bat = Battery();
+		vTaskDelay(1000); 
+		//volt[0] = VoltSE(0,0);
+		//volt[1] = VoltSE(1,0);
+		volt[2] = VoltDiff(0,0);  
 		/*if(DL212_EasyMode){ 
       DL212_EasyMode_Scan(); 
       DL212_EasyMode_Scan_Count++; 
@@ -150,8 +158,8 @@ void Task2(void *pvParameters){
  
   while(1){ 
     if(USB_DETECT()){ 
-			//SDI12_Transparent(0);
-      if(bDeviceState == CONFIGURED){ 
+			SDI12_Transparent(1);
+      /*if(bDeviceState == CONFIGURED){ 
         CDC_Receive_DATA(); 
         if(sUSB_Para.packet_rec){
           DL212_EasyMode_ValueDisplay();					
@@ -161,7 +169,7 @@ void Task2(void *pvParameters){
           sUSB_Para.packet_rec = 0; 
           sUSB_Para.rec_len = 0; 
         } 
-      }
+      }*/
 	  } 
 		else{ 
 		  if(BinarySemaphore_USB != NULL){ 
@@ -229,3 +237,17 @@ void UserGpio_Config(void){
 	GPIOC->BSRRL = GPIO_Pin_7; 
 }
   
+void PCF8563_Config(void){
+	_PCF8563_Time_Typedef sTime1={18,06,30},sTime2={0,0,0,0};
+	_PCF8563_Date_Typedef sDate1={18,8,31,4},sDate2={0,0,0,0};
+	unsigned char century;
+	
+	_PCF8563_CLKOUT_Typedef sPCF8563_CLKOUT={PCF_CLKOUT_F1,PCF_CLKOUT_Close};
+ 
+	PCF8563_SetPulseOut(1); 
+	PCF8563_SetCLKOUT(&sPCF8563_CLKOUT); 
+  PCF8563_SetTime(PCF_Format_BIN,&sTime1); 
+	PCF8563_SetDate(PCF_Format_BIN,PCF_Century_20xx,&sDate1); 
+	PCF8563_GetTime(PCF_Format_BIN,&sTime2); 
+	PCF8563_GetDate(PCF_Format_BIN,&century,&sDate2); 
+}

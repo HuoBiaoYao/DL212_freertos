@@ -23,4 +23,5 @@ void Task3(void *pvParameters);
 
 void OneShotCallback(TimerHandle_t xTimer);
 void UserGpio_Config(void);
+void PCF8563_Config(void);
 #endif

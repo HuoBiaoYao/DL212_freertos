@@ -9,6 +9,7 @@
 #define C1_RX_PORT       GPIOA
 #define C1_RX_PIN        GPIO_Pin_3
 #define C1_RX_PIN_SOURCE GPIO_PinSource3 
+#define C1_RX_PORT_CLK   RCC_AHBPeriph_GPIOA 
 
 #define C2_CTRL_PORT     GPIOB
 #define C2_CTRL_PIN      GPIO_Pin_6
@@ -17,6 +18,7 @@
 #define C2_RX_PORT       GPIOD
 #define C2_RX_PIN        GPIO_Pin_2 
 #define C2_RX_PIN_SOURCE GPIO_PinSource2
+#define C2_RX_PORT_CLK   RCC_AHBPeriph_GPIOD 
 
 typedef enum __C_PORT_STATE{ 
 	C_SDI12_IN_USE=0,

@@ -5,16 +5,138 @@
 #include "hw.h"
 #include "hal.h"
 #include "delay.h"
-#include "ctype.h"
-#include "DL212.h"
+#include "ctype.h" 
 #include "DL212_easy_mode.h"
 #include "main.h"
+#include "ads1248.h"
 
 struct CONFIG sDL212_Config;
 float Value[7];
 unsigned char DL212_EasyMode=1;
 unsigned char DL212_Value_Display_Ctrl=0;
 unsigned int LastScanIntCount=0;
+
+float Var[200]={0}; 
+unsigned int  C1_Dest=0  ,C2_Dest=0  ,P_SW_Dest=0  ,F_Mea_Dest=0;
+unsigned int  C1_Time=0  ,C2_Time=0  ,P_SW_Time=0  ,F_Mea_Time=0; 
+unsigned char C1_Option=0,C2_Option=0,P_SW_Option=0,F_Mea_Option=0;
+ 
+
+float Battery(void){
+	float bat;
+	
+	ADS1248SetChannel(2,0);
+	ADS1248SetChannel(3,1);  
+	bat = (float)ADS1248RDATARead()*3/0x7FFFFF;
+	bat = bat*251/51;
+	
+	return bat;
+}
+
+void VoltSe(void){
+
+}
+
+float VoltDiff(unsigned char chan,unsigned char range){
+	float volt;
+	
+	switch(range){
+	  case 0:
+			ADS1248SetGain(0);
+		break;
+		case 1:
+			ADS1248SetGain(3);
+		break;
+		case 2:
+			ADS1248SetGain(5);
+		break;
+		default:
+		break;
+	}
+	switch(chan){
+	  case 0: 
+			ADS1248SetChannel(0,0);
+			ADS1248SetChannel(1,1);   
+		break;
+		case 1:
+			 
+			ADS1248SetChannel(4,0);
+			ADS1248SetChannel(5,1);
+		break;
+		case 2:
+			
+			ADS1248SetChannel(6,0);
+			ADS1248SetChannel(7,1); 
+		break;
+		
+	} 
+  volt = (float)ADS1248RDATARead()*3/0x7FFFFF;
+  vTaskDelay(1); 
+	
+	return volt;
+}
+
+float VoltSE(unsigned char chan,unsigned char range){
+	float volt;
+	
+	switch(range){
+	  case 0:
+			ADS1248SetGain(0);
+		break;
+		case 1:
+			ADS1248SetGain(3);
+		break;
+		case 2:
+			ADS1248SetGain(5);
+		break;
+		default:
+		break;
+	}
+	switch(chan){
+	  case 0:
+			ADS1248SetChannel(0,0);
+			ADS1248SetChannel(3,1);   
+		break;
+		case 1:
+			ADS1248SetChannel(1,0);
+			ADS1248SetChannel(3,1);   
+		break;
+		case 2:
+			ADS1248SetChannel(4,0);
+			ADS1248SetChannel(3,1);   
+		break;
+		case 3:
+			ADS1248SetChannel(5,0);
+			ADS1248SetChannel(3,1);   
+		break;
+		case 4:
+			ADS1248SetChannel(6,0);
+			ADS1248SetChannel(3,1);   
+		break;
+		case 5:
+			ADS1248SetChannel(7,0);
+			ADS1248SetChannel(3,1);   
+		break;
+		default:
+		break;
+	}
+  volt = (float)ADS1248RDATARead()*3/0x7FFFFF;
+  vTaskDelay(3); 
+	
+	return volt;
+}
+
+void P_SW(void){
+
+}
+
+void PLL(void){
+
+}
+
+void D1(void){
+
+}
 
 void DL212_EasyMode_Scan(void){
 	unsigned int i=0;
@@ -210,11 +332,38 @@ void DL212_EasyMode_ValueDisplay(void){
 
 void DL212_EasyMode_Init(void){
   EEPROM_Read((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config));
-	if(1 == DL212_EasyMode){ 
-		P_SW_Time  =C1_Time  =C2_Time  =F_Mea_Time  =1000;
+ 
+		/*P_SW_Time  =C1_Time  =C2_Time  =F_Mea_Time  =1000;
 		P_SW_Option=C1_Option=C2_Option=F_Mea_Option=1;
-	  P_SW_Dest=0,C1_Dest=1,C2_Dest=2,F_Mea_Dest=3;
-		
+	  P_SW_Dest=0,C1_Dest=1,C2_Dest=2,F_Mea_Dest=3;*/
+	switch(sDL212_Config.mode[3]){
+	  case 0:
+			psSDI12_Func->init(0);
+		break;
+		case 1:
+			;
+		break;
+		case 2:
+			;
+		break;
+		default:
+		break;
+	}
+	switch(sDL212_Config.mode[4]){
+	  case 0:
+			psSDI12_Func->init(1);
+		break;
+		case 1:
+			;
+		break;
+		case 2:
+			;
+		break;
+		default:
+		break;
+	}
+	  
+	
 		if(sDL212_Config.port[7]){
 		  psSW12_Func->sw(0,1);
 		}
@@ -305,7 +454,7 @@ void DL212_EasyMode_Init(void){
 	      psC_OUT_Func->init(1);
 	    break;
   	}
-	}
+ 
 }
 
 void DL212_EasyMode_Config(void){

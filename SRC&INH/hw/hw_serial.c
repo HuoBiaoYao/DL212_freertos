@@ -145,6 +145,8 @@ void USART2_SDI12_Config(void){
   NVIC_InitTypeDef NVIC_InitStructure;
 	
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2,ENABLE); 
+	RCC_AHBPeriphClockCmd(C1_RX_PORT_CLK,ENABLE); 
+	
 	GPIO_PinAFConfig(C1_RX_PORT,C1_RX_PIN_SOURCE,GPIO_AF_USART2);  
 	GPIO_InitStructure.GPIO_Pin = C1_RX_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
@@ -176,6 +178,8 @@ void UART5_SDI12_Config(void){
   NVIC_InitTypeDef NVIC_InitStructure;
 	
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART5,ENABLE); 
+	RCC_AHBPeriphClockCmd(C2_RX_PORT_CLK,ENABLE); 
+	
 	GPIO_PinAFConfig(C2_RX_PORT,C2_RX_PIN_SOURCE,GPIO_AF_UART5);  
 	GPIO_InitStructure.GPIO_Pin = C2_RX_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;

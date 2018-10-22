@@ -63,7 +63,7 @@ void ADS1248_GPIO_Init(void){
   ADS1248_DISABLE();
 	ADS1248_START_H();
 	ADS1248_RST_H();
-	Delay20ms(); 
+	Delay10ms(); 
 }
 
 void ADS1248_SPI_Init(void){
@@ -1011,11 +1011,10 @@ int ADS1248RDATARead(void)		// reads data directly based on RDATAC mode (writes 
 	// assert CS to start transfer 
 	ADS1248_ENABLE();  
 	ADS1248_START_H(); 
-	//__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
-	//ADS1248_START_L(); 
-  //Delay200us();Delay200us();Delay200us();	
-	while (0 == IS_ADS1248_READY()){}
-	//ADS1248WaitForDataReady (0);
+	__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	ADS1248_START_L();  
+	//while (0 == IS_ADS1248_READY()){}
+	ADS1248WaitForDataReady (0);
 	// get the conversion result
 	data = ADS1248_SPI_SendByte(0xFF);
 	data = (data << 8) | ADS1248_SPI_SendByte(0xFF);
