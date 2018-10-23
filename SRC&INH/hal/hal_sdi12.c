@@ -415,19 +415,19 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 	return SDI12_OK;
 }
 #include "DL212_easy_mode.h"
-unsigned char SDI12_Data_Ascii[2][400];
+char SDI12_Data_Ascii[2][400];
 void SDI12_DataProcess(unsigned char port){
 	unsigned int i,j=0; 
   
 	while(*(sSDI12_Para[port].rx_buf+j) != '\r'){
 		if('+'==*(sSDI12_Para[port].rx_buf+j) || '-'==*(sSDI12_Para[port].rx_buf+j)){
-			*(&SDI12_Data_Ascii[port][0]+i++)= ',';
-			*(&SDI12_Data_Ascii[port][0]+i++)= *(sSDI12_Para[port].rx_buf+j++);
+			*(&SDI12_Data_Ascii[port][0]+i++) = ',';
+			*(&SDI12_Data_Ascii[port][0]+i++) = *(sSDI12_Para[port].rx_buf+j++);
 		}
 		else{
 			*(&SDI12_Data_Ascii[port][0]+i++)= *(sSDI12_Para[port].rx_buf+j++);
 		}
 	}
 	*(&SDI12_Data_Ascii[port][0]+i++) = '\r',*(&SDI12_Data_Ascii[port][0]+i++) = '\n',*(&SDI12_Data_Ascii[port][0]+i++) = 0;
-	printf("%c%c,d%d,%s",sDL212_Config.device_id[0],sDL212_Config.device_id[1],port+1,&SDI12_Data_Ascii[port][0]);
+	//printf("%c%c,d%d,%s",sDL212_Config.device_id[0],sDL212_Config.device_id[1],port+1,&SDI12_Data_Ascii[port][0]);//和其他数据一起发送
 }

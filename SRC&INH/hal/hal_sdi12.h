@@ -85,7 +85,7 @@ __SDI12_RSL SDI12_Transparent(unsigned char port);
 __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd);
 void SDI12_DataProcess(unsigned char port);
  
-extern char SDI12_Data[2][SDI12_RX_SIZE];
+extern char SDI12_Data_Ascii[2][400];
 extern unsigned int SDI12_Data_Bytes[2];
 extern __SDI12_BUS eSDI12_BUS[2];
 extern struct _SDI12_PARA sSDI12_Para[2];

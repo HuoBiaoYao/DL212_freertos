@@ -168,10 +168,8 @@ void Task2(void *pvParameters){
 			SDI12_Transparent(1);
       /*if(bDeviceState == CONFIGURED){ 
         CDC_Receive_DATA(); 
-        if(sUSB_Para.packet_rec){
-          DL212_EasyMode_ValueDisplay();					
+        if(sUSB_Para.packet_rec){				
 					DL212_Config_Utility();
-          DL212_EasyMode_Config(); 
 					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len); 
           sUSB_Para.packet_rec = 0; 
           sUSB_Para.rec_len = 0; 
