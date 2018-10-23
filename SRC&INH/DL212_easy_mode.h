@@ -1,13 +1,14 @@
 #ifndef __DL212_EASY_MODE_H
 #define __DL212_EASY_MODE_H
-
-extern unsigned int  C1_Dest,C2_Dest,P_SW_Dest,F_Mea_Dest;
-extern unsigned int  C1_Time,C2_Time,P_SW_Time,F_Mea_Time; 
-extern unsigned char C1_Option,C2_Option,P_SW_Option,F_Mea_Option;
+ 
+#define VALUE_DISPLAY        0
+#define SDI12_0_TRANSPARENT  1
+#define SDI12_1_TRANSPARENT  2
 
 struct CONFIG{
   char device_id[3];//包含结束符
   unsigned int scan;
+  unsigned char debug_mode; 	
   unsigned char mode[5];//差分1，差分2，差分3，DI，D2
   unsigned char sw[11];
   unsigned char range[6];
@@ -24,21 +25,19 @@ struct CONFIG{
   unsigned char lrc;
 };
 
-extern unsigned char DL212_Value_Display_Ctrl;
-extern unsigned char DL212_EasyMode;
+extern unsigned char DL212_DebugMode;
 extern struct CONFIG sDL212_Config;
+extern float PSW_Value,PLL_Value,C1_Value,C2_Value;
 extern float Value[];
-
-void DL212_EasyMode_Scan(void); 
-void DL212_EasyMode_ValueDisplay(void);
-void DL212_EasyMode_Init(void);
-void DL212_EasyMode_Config(void);
- 
-unsigned char LRC( unsigned char *buf,unsigned short int len);
-void DL212_Config_Utility(void);
+extern unsigned int RTC_IntCount;
 
 float Battery(void);
 float VoltDiff(unsigned char chan,unsigned char range);
-float VoltSE(unsigned char chan,unsigned char range);
+float VoltSe(unsigned char chan,unsigned char range);
+
+void DL212_EasyMode_Scan(void);  
+void DL212_EasyMode_Init(void);
+void DL212_Config_Utility(void);  
+unsigned char LRC( unsigned char *buf,unsigned short int len);
 #endif
 

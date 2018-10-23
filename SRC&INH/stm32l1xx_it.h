@@ -29,7 +29,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __STM32L1XX_IT_H
 #define __STM32L1XX_IT_H
-
  
 void NMI_Handler(void);
 void HardFault_Handler(void);

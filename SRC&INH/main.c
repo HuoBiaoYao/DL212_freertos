@@ -12,8 +12,7 @@
 #include "usart_idle_dma_modbus.h"   
 #include "portfunction.h"
 //new
-#include "ads1248.h"
-#include "dl212_ads1248.h"
+#include "ads1248.h" 
 #include "iic.h"
 #include "pcf8563.h"
 #include "mcp4725.h"
@@ -196,16 +195,16 @@ void Task3(void *pvParameters){
 	sMBSlave.init(115200); 
 	while(1){ 
 	  if(BinarySemaphore_MB != NULL){ 
-      if(xSemaphoreTake(BinarySemaphore_MB,portMAX_DELAY) == pdTRUE){ 
+      /*if(xSemaphoreTake(BinarySemaphore_MB,portMAX_DELAY) == pdTRUE){ 
 				if(1 == sDL212_Config.mode){
-					//ucMBAddress = sDL212_Config.modbus_addr;
+					ucMBAddress = sDL212_Config.modbus_addr;
 				  sMBSlave.poll();
 				}
         else{
 				  memset(USART_DMA_RxBuf,0,USART1_DMA_Rec_Cnt);
 				  USART1_DMA_Rec_Cnt =0;
 				}
-	    }
+	    }*/
     }
 	}
 } 

@@ -8,20 +8,17 @@
 #include "ctype.h" 
 #include "DL212_easy_mode.h"
 #include "main.h"
+#include "mcp4725.h"
 #include "ads1248.h"
 #include "stm32l1xx_tim.h"
 
 struct CONFIG sDL212_Config;
-float Value[7];
-unsigned char DL212_EasyMode=1;
-unsigned char DL212_Value_Display_Ctrl=0;
-unsigned int LastScanIntCount=0;
+unsigned char DL212_DebugMode=VALUE_DISPLAY;
+float PSW_Value,PLL_Value,C1_Value,C2_Value;
+float Value[80];
+unsigned char Value_Count=0; 
+unsigned int RTC_IntCount=0,LastScanIntCount=0;
 
-float Var[200]={0}; 
-unsigned int  C1_Dest=0  ,C2_Dest=0  ,P_SW_Dest=0  ,F_Mea_Dest=0;
-unsigned int  C1_Time=0  ,C2_Time=0  ,P_SW_Time=0  ,F_Mea_Time=0; 
-unsigned char C1_Option=0,C2_Option=0,P_SW_Option=0,F_Mea_Option=0;
- 
 
 float Battery(void){
 	float bat;
@@ -33,11 +30,6 @@ float Battery(void){
 	
 	return bat;
 }
-
-void VoltSe(void){
-
-}
-
 float VoltDiff(unsigned char chan,unsigned char range){
 	float volt;
 	
@@ -59,13 +51,11 @@ float VoltDiff(unsigned char chan,unsigned char range){
 			ADS1248SetChannel(0,0);
 			ADS1248SetChannel(1,1);   
 		break;
-		case 1:
-			 
+		case 1: 
 			ADS1248SetChannel(4,0);
 			ADS1248SetChannel(5,1);
 		break;
-		case 2:
-			
+		case 2: 
 			ADS1248SetChannel(6,0);
 			ADS1248SetChannel(7,1); 
 		break;
@@ -77,7 +67,7 @@ float VoltDiff(unsigned char chan,unsigned char range){
 	return volt;
 }
 
-float VoltSE(unsigned char chan,unsigned char range){
+float VoltSe(unsigned char chan,unsigned char range){
 	float volt;
 	
 	switch(range){
@@ -125,218 +115,128 @@ float VoltSE(unsigned char chan,unsigned char range){
   vTaskDelay(3); 
 	
 	return volt;
-}
-
-void P_SW(void){
-
-}
-
-void PLL(void){
-
-}
-
-void D1(void){
-
-}
+} 
 
 void DL212_EasyMode_Scan(void){
 	unsigned int i=0;
 	char message[30];
 	
-	/*if(sDL212_Config.scan && RTC_M41T81_IntCount!=LastScanIntCount){ 
-	  if(0 == RTC_M41T81_IntCount%sDL212_Config.scan){ 
-			LastScanIntCount = RTC_M41T81_IntCount; 
-	    switch(sDL212_Config.port[0]){ 
-			  case 0:
-					Value[0] = psSE_FUNC->read(0);
-					if(0 == sDL212_Config.mode){
-			      printf("%c%c,v1,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[0]); 
+	if(sDL212_Config.scan && RTC_IntCount != LastScanIntCount){ 
+	  if(0 == RTC_IntCount%sDL212_Config.scan){ 
+			LastScanIntCount = RTC_IntCount; 
+			Value_Count = 0;
+			if(0 == sDL212_Config.mode[0]){//HL-1
+				if(1 == sDL212_Config.sw[0]){
+					if(1== sDL212_Config.vx_sw[0]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[0]);
 					}
-				break;
-				case 1:
-					Value[0] = Var[F_Mea_Dest];
-					if(0 == sDL212_Config.mode){
-					  printf("%c%c,v1,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[0]);   
-					} 
-				break;
-				case 2:
-					Value[0] = 0;
-					psSE_FUNC->out_ctrl(0,1);
-				break;
-				case 3:
-					Value[0] = 0;
-				  psSE_FUNC->out_ctrl(0,0);
-				break;
-				default:
-				break;
-			}
-			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v1 value:%.1f\r\n",Value[0]);USB_Send((unsigned char *)message,i); 
-			}
-			switch(sDL212_Config.port[1]){
-			  case 0:
-					Value[1] = psSE_FUNC->read(1);
-					if(0 == sDL212_Config.mode){
-					  printf("%c%c,v2,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[1]); 
-					}
-				break;
-				case 1:
-					Value[1] = Var[F_Mea_Dest];
-					if(0 == sDL212_Config.mode){
-					  printf("%c%c,v2,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[1]); 
-					}
-				break;
-				case 2:
-					Value[1] = 0;
-					psSE_FUNC->out_ctrl(1,1);
-				break;
-				case 3:
-					Value[1] = 0;
-				  psSE_FUNC->out_ctrl(1,0);
-				break;
-				default:
-				break;
-			}
-			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v2 value:%.1f\r\n",Value[1]);USB_Send((unsigned char *)message,i); 
-			}
-			switch(sDL212_Config.port[2]){
-			  case 0:
-					Value[2] = psSE_FUNC->read(2);
-					if(0 == sDL212_Config.mode){
-					  printf("%c%c,v3,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[2]);
-					}
-				break;
-				case 1:
-					Value[2] = Var[F_Mea_Dest];
-					if(0 == sDL212_Config.mode){
-					  printf("%c%c,v3,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[2]);
-					}
-				break;
-				case 2:
-					Value[2] = 0;
-					psSE_FUNC->out_ctrl(2,1);
-				break;
-				case 3:
-					Value[2] = 0;
-				  psSE_FUNC->out_ctrl(2,0);
-				break;
-				default:
-				break;
-			}
-			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v3 value:%.1f\r\n",Value[2]);USB_Send((unsigned char *)message,i); 
-			}
-			switch(sDL212_Config.port[3]){
-			  case 0:
-					Value[3] = psSE_FUNC->read(3);
-					if(0 == sDL212_Config.mode){
-					  printf("%c%c,v4,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[3]);
-					}
-				break;
-				case 1:
-					Value[3] = Var[F_Mea_Dest];
-					if(0 == sDL212_Config.mode){
-					  printf("%c%c,v4,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[3]);
-					}
-				break;
-				case 2:
-					Value[3] = 0;
-					psSE_FUNC->out_ctrl(3,1);
-				break;
-				case 3:
-					Value[3] = 0;
-				  psSE_FUNC->out_ctrl(3,0);
-				break;
-				default:
-				break;
-			}
-			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"v4 value:%.1f\r\n",Value[3]);USB_Send((unsigned char *)message,i); 
-			}
-			if(0 == sDL212_Config.port[4]){
-				Value[4] = Var[P_SW_Dest];
-				if(0 == sDL212_Config.mode){
-				  printf("%c%c,f1,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[4]);
-				}
+				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[0]); 
+				} 
 			}
 			else{
-			  Value[4] = 0;
+			  if(1 == sDL212_Config.sw[0]){//H-1
+					if(1== sDL212_Config.vx_sw[0]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[0]);
+					}
+				  Value[Value_Count++] = VoltSe(0,sDL212_Config.range[0]); 
+				}
+				if(1 == sDL212_Config.sw[1]){//L-1
+					if(1== sDL212_Config.vx_sw[1]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[1]);
+					}
+					Value[Value_Count++] = VoltSe(1,sDL212_Config.range[1]); 
+				}
 			}
-			if(1 == DL212_Value_Display_Ctrl){
-		    i=sprintf(message,"f1 value:%.0f\r\n",Value[4]);USB_Send((unsigned char *)message,i); 
+	    if(0 == sDL212_Config.mode[1]){//HL-2
+				if(1 == sDL212_Config.sw[2]){
+					if(1== sDL212_Config.vx_sw[2]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
+					}
+				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[2]); 
+				} 
 			}
-			switch(sDL212_Config.port[5]){
-			  case 0:
-					Value[5] = Var[C1_Dest];
-				  if(0 == sDL212_Config.mode){
-				    printf("%c%c,d1,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[5]);
-				  }
-				  if(1 == DL212_Value_Display_Ctrl){
-		        i=sprintf(message,"d1 value:%.0f\r\n",Value[5]);USB_Send((unsigned char *)message,i); 
-			    } 
-				break;
-				case 1:
-					SDI12Recorder(0,(unsigned char*)&sDL212_Config.sdi12[0][0]);
-				break;
-				case 2: 
-					psC_OUT_Func->out(0,1);
-				break;
-				case 3:
-					Value[5] = 0;
-				  psC_OUT_Func->out(0,0);
-				break;
-				default:
-				break;
+			else{
+			  if(1 == sDL212_Config.sw[2]){//H-2
+					if(1== sDL212_Config.vx_sw[2]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
+					}
+				  Value[Value_Count++] = VoltSe(0,sDL212_Config.range[2]); 
+				}
+				if(1 == sDL212_Config.sw[3]){//L-2
+					if(1== sDL212_Config.vx_sw[3]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[3]);
+					}
+					Value[Value_Count++] = VoltSe(1,sDL212_Config.range[3]); 
+				}
 			}
-			switch(sDL212_Config.port[6]){
-			  case 0:
-					Value[6] = Var[C2_Dest];
-				  if(0 == sDL212_Config.mode){
-				    printf("%c%c,d2,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[6]);
-				  }
-				  if(1 == DL212_Value_Display_Ctrl){
-		        i=sprintf(message,"d2 value:%.0f\r\n\r\n",Value[6]);USB_Send((unsigned char *)message,i); 
-		    	} 
-				break;
-				case 1:
-					SDI12Recorder(1,(unsigned char*)&sDL212_Config.sdi12[1][0]);
-				break;
-				case 2: 
-					psC_OUT_Func->out(1,1);
-				break;
-				case 3:
-					Value[6] = 0;
-				  psC_OUT_Func->out(1,0);
-				break;
-				default:
-				break;
+			if(0 == sDL212_Config.mode[2]){//HL-3
+				if(1 == sDL212_Config.sw[4]){
+					if(1== sDL212_Config.vx_sw[4]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
+					}
+				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[4]); 
+				} 
+			}
+			else{
+			  if(1 == sDL212_Config.sw[4]){//H-3
+					if(1== sDL212_Config.vx_sw[4]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
+					}
+				  Value[Value_Count++] = VoltSe(0,sDL212_Config.range[4]); 
+				}
+				if(1 == sDL212_Config.sw[5]){//L-3
+					if(1== sDL212_Config.vx_sw[5]){
+					  MCP4725_SetValue(sDL212_Config.vx_value[5]);
+					}
+					Value[Value_Count++] = VoltSe(1,sDL212_Config.range[5]); 
+				}
+			}
+			if(2 != sDL212_Config.sw[6]){//0:常开  1:测量时打开   2：关闭
+					psSW12_Func->sw(1,1);
+			}
+			if(sDL212_Config.sw[7]){ 
+				Value[Value_Count++] = PSW_Value;  
+			}
+			if(0 == sDL212_Config.sw[8]){
+				Value[Value_Count++] = PLL_Value; 
 			} 
+			if(1 == sDL212_Config.sw[9]){
+			  switch(sDL212_Config.mode[3]){
+			    case 0:
+						SDI12Recorder(0,(unsigned char*)&sDL212_Config.sdi12_cmd[0][0]); ;
+					break;
+					case 1:
+						Value[Value_Count++] = C1_Value;
+					break;
+					default:
+					break;
+			  } 
+			} 
+			if(1 == sDL212_Config.sw[10]){
+			  switch(sDL212_Config.mode[4]){
+			    case 0:
+						SDI12Recorder(1,(unsigned char*)&sDL212_Config.sdi12_cmd[0][0]);
+					break;
+					case 1:
+					  Value[Value_Count++] = C2_Value;
+					break;
+					default:
+					break;
+			  }	
+			}
+			//if(0 == strncmp("value display on",(const char*)(sUSB_Para.rx_buf),16)){
+			//printf("%c%c,d1,%.1f\r\n",sDL212_Config.device_id[0],sDL212_Config.device_id[1],Value[5]); 
+			//i=sprintf(message,"v1 value:%.1f\r\n",Value[0]);USB_Send((unsigned char *)message,i);  
 			//if(0 == sDL212_Config.mode){
-		    //printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[0],Value[1],Value[2],Value[3],Value[4],Value[5],Value[6]);
+		  //printf("%c%c,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\r\n",sDL212_Config.mark[0],sDL212_Config.mark[1],Value[0],Value[1],Value[2],Value[3],Value[4],Value[5],Value[6]);
 			//}
 	  }
-	} */
-} 
-
-void DL212_EasyMode_ValueDisplay(void){
-	unsigned char i; 
-	char message[30]; 
-	
-  if(0 == strncmp("value display on",(const char*)(sUSB_Para.rx_buf),16)){
-	  DL212_Value_Display_Ctrl = 1;
-  }
-  else if(0 == strncmp("value display off",(const char*)(sUSB_Para.rx_buf),17)){
-	  DL212_Value_Display_Ctrl = 0;
 	}
-}
-
+} 
+  
 void DL212_EasyMode_Init(void){
   EEPROM_Read((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config));
  
-		/*P_SW_Time  =C1_Time  =C2_Time  =F_Mea_Time  =1000;
-		P_SW_Option=C1_Option=C2_Option=F_Mea_Option=1;
-	  P_SW_Dest=0,C1_Dest=1,C2_Dest=2,F_Mea_Dest=3;*/
 	switch(sDL212_Config.mode[3]){
 	  case 0:
 			psSDI12_Func->init(0);
@@ -350,8 +250,7 @@ void DL212_EasyMode_Init(void){
 	  	}
 			else{
 				TIM7_Init(1000);
-			}
-			
+			} 
 		break;
 		case 2:
 			;
@@ -379,10 +278,7 @@ void DL212_EasyMode_Init(void){
 		break;
 		default:
 		break;
-	}
-	if(1 == sDL212_Config.sw[6]){//sw12常开
-		psSW12_Func->sw(1,1);
-	}  
+	} 
 }
 
 void DL212_Config_Utility(void){

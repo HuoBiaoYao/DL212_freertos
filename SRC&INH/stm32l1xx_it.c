@@ -2,16 +2,17 @@
 #include "hal.h"
 #include "stm32l1xx_it.h"
 #include "usb_lib.h"
-#include "usb_istr.h"
-#include "dl212.h"
+#include "usb_istr.h" 
 #include "main.h"
+#include "DL212_easy_mode.h"
 
+ 
 /*rtc int*/
 void EXTI2_IRQHandler(void){
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   if(EXTI_GetITStatus(EXTI_Line2) != RESET){
-		RTC_M41T81_IntCount++;
+		RTC_IntCount++;
   }
 	EXTI_ClearITPendingBit(EXTI_Line2);
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -73,58 +74,8 @@ void UART5_IRQHandler(void){
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 } 
- 
-void TIM7_IRQHandler(void){ 
-	unsigned int count;
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	
-  if(TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET){
-    TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
-		count = TIM9->CNT;
-	  TIM9->CNT = 0; 
-		//TIM_Cmd(TIM7,DISABLE);
-		switch(C1_Option){
-			case 0:
-			  Var[C1_Dest] = (double)(C1_Time)/(double)(count);
-		  break;
-		  case 1:
-			  Var[C1_Dest] = (double)(count*1000)/(double)(C1_Time);
-		  break;
-		  case 2:
-			  Var[C1_Dest] = count;
-		  break;
-		  default:
-		  break;
-	  }			
-	}
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-} 
 
-void TIM4_IRQHandler(void){ 
-  volatile unsigned int count=0;
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	
-  if(TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET){
-    TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-		count = TIM3->CNT;
-	  TIM3->CNT = 0; 
-	  //TIM_Cmd(TIM4,DISABLE);
-	  switch(C2_Option){
-			case 0:
-			  Var[C2_Dest] = (double)(C2_Time)/(double)(count);
-		  break;
-		  case 1:
-			  Var[C2_Dest] = (double)(count*1000)/(double)(C2_Time);
-		  break;
-		  case 2:
-			  Var[C2_Dest] = count;
-		  break;
-		  default:
-		  break;
-	  }			 
-	}
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
+//psw
 void TIM6_IRQHandler(void){ 
   volatile unsigned int count=0;
 	BaseType_t xHigherPriorityTaskWoken;  
@@ -134,22 +85,23 @@ void TIM6_IRQHandler(void){
     count=TIM2->CNT;
     TIM2->CNT = 0;
     //TIM_Cmd(TIM6,DISABLE);
-    switch(P_SW_Option){
-      case 0:
-        Var[P_SW_Dest] = (double)(P_SW_Time)/(double)(count);
+    switch(sDL212_Config.datatype[0]){
+			case 0:
+			  PSW_Value = (float)(count)*1000/sDL212_Config.mea_time[0];
 		  break;
 		  case 1:
-			  Var[P_SW_Dest] = (double)(count*1000)/(double)(P_SW_Time);
+			  PSW_Value = sDL212_Config.mea_time[0]/(float)(count)/1000;
 		  break;
 		  case 2:
-		   Var[P_SW_Dest] = count;
+			  PSW_Value = count;
 		  break;
 		  default:
 		  break;
-	  }
+	  }			
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 } 
+//pll
 void TIM10_IRQHandler(void){ 
   unsigned int count;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -159,22 +111,75 @@ void TIM10_IRQHandler(void){
 		count = TIM5->CNT; 
 	  TIM5->CNT = 0; 
 		//TIM_Cmd(TIM10,DISABLE); 
-		switch(F_Mea_Option){
+		switch(sDL212_Config.datatype[1]){
 			case 0:
-			  Var[F_Mea_Dest] = (double)(F_Mea_Time)/(double)(count);
+			  PLL_Value = (float)(count)*1000/sDL212_Config.mea_time[1];
 		  break;
 		  case 1:
-			  Var[F_Mea_Dest] = (double)(count*1000)/(double)(F_Mea_Time);;
+			  PLL_Value = sDL212_Config.mea_time[1]/(float)(count)/1000;
 		  break;
 		  case 2:
-			  Var[F_Mea_Dest] = count;
+			  PLL_Value = count;
 		  break;
 		  default:
 		  break;
-	  }	 
+	  }			 
 	}
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+//c1 
+void TIM7_IRQHandler(void){ 
+	unsigned int count;
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
+  if(TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET){
+    TIM_ClearITPendingBit(TIM7, TIM_IT_Update);
+		count = TIM9->CNT;
+	  TIM9->CNT = 0; 
+		//TIM_Cmd(TIM7,DISABLE);
+		switch(sDL212_Config.datatype[2]){
+			case 0:
+			  C1_Value = (float)(count)*1000/sDL212_Config.mea_time[2];
+		  break;
+		  case 1:
+			  C1_Value = sDL212_Config.mea_time[2]/(float)(count)/1000;
+		  break;
+		  case 2:
+			  C1_Value = count;
+		  break;
+		  default:
+		  break;
+	  }			
+	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+} 
+//c2
+void TIM4_IRQHandler(void){ 
+  volatile unsigned int count=0;
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
+  if(TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET){
+    TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
+		count = TIM3->CNT;
+	  TIM3->CNT = 0; 
+	  //TIM_Cmd(TIM4,DISABLE);
+	  switch(sDL212_Config.datatype[3]){
+			case 0:
+			  C2_Value = (float)(count)*1000/sDL212_Config.mea_time[1];
+		  break;
+		  case 1:
+			  C2_Value = sDL212_Config.mea_time[1]/(float)(count)/1000;
+		  break;
+		  case 2:
+			  C2_Value = count;
+		  break;
+		  default:
+		  break;			
+	  }
+	}
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
  
 /*******************************************************************************
 * Function Name  : NMI_Handler
