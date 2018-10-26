@@ -1,14 +1,14 @@
 #ifndef __DL212_EASY_MODE_H
 #define __DL212_EASY_MODE_H
  
-#define VALUE_DISPLAY        0
-#define SDI12_0_TRANSPARENT  1
-#define SDI12_1_TRANSPARENT  2
-
+#define VALUE_DISPLAY_ON     0x00
+#define VALUE_DISPLAY_OFF    0x01
+#define SDI12_0_TRANSPARENT  0x02
+#define SDI12_1_TRANSPARENT  0x03
+ 
 struct CONFIG{
   char device_id[3];//包含结束符
-  unsigned int scan;
-  unsigned char debug_mode; 	
+  unsigned int scan;	
   unsigned char mode[5];//差分1，差分2，差分3，DI，D2
   unsigned char sw[11];
   unsigned char range[6];
@@ -30,6 +30,7 @@ extern struct CONFIG sDL212_Config;
 extern float PSW_Value,PLL_Value,C1_Value,C2_Value;
 extern float Value[];
 extern char Value_Ascii[];
+extern unsigned int Value_Ascii_Len;
 extern unsigned int RTC_IntCount;
 
 float Battery(void);

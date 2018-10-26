@@ -1,7 +1,15 @@
 #include "ads1248.h"
 #include "delay.h"
 
- 
+void ADS1248_Init(void){
+	Delay10ms(); Delay10ms(); 
+	ADS1248_SPI_Init(); 
+	ADS1248_GPIO_Init(); 
+	ADS1248SetVoltageReference(1);
+  ADS1248SetGain(0); 
+	ADS1248SetDataRate(9); 
+}
+
 void ADS1248_GPIO_Init(void){
   GPIO_InitTypeDef  GPIO_InitStructure; 
 	
@@ -48,21 +56,14 @@ void ADS1248_GPIO_Init(void){
   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_40MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
   GPIO_Init(ADS1248_DRDY_GPIO_PORT, &GPIO_InitStructure);
 	
-	/*Delay20ms();
-  ADS1248_DISABLE();
-	ADS1248_START_L();
-	ADS1248_RST_L();
-	Delay10ms();
-  ADS1248_RST_H();
-	ADS1248_START_H();
-  Delay10ms();*/
-	
-  ADS1248_DISABLE();
 	ADS1248_START_H();
 	ADS1248_RST_H();
+  ADS1248_ENABLE();
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	ADS1248_SPI_SendByte(ADS1248_CMD_RESET);
 	Delay10ms(); 
 }
 
@@ -84,7 +85,7 @@ void ADS1248_SPI_Init(void){
 	SPI_CalculateCRC(SPI_ADS1248, ENABLE); 
 }
  
-static unsigned char ADS1248_SPI_SendByte(unsigned char byte){
+unsigned char ADS1248_SPI_SendByte(unsigned char byte){
 	unsigned int timeout=0;
 	 
   while (SPI_I2S_GetFlagStatus(SPI_ADS1248, SPI_I2S_FLAG_TXE) == RESET){
@@ -115,12 +116,10 @@ int ADS1248WaitForDataReady(int Timeout){
 		if (Timeout < 0)
 			return ADS1248_ERROR; 					//ADS1248_TIMEOUT_WARNING;
 	}
-	else
-	{
-		// wait for /DRDY = 1
-		while ( !( IS_ADS1248_READY() ) );
-		// wait for /DRDY = 0
-		while ( IS_ADS1248_READY() );
+	else{  
+			while ( !( IS_ADS1248_READY() ) ); 
+		// wait for /DRDY = 0 
+		  while ( IS_ADS1248_READY() ); 
 	}
 	return 0;
 }
@@ -140,7 +139,6 @@ void ADS1248ReadRegister(int StartAddress, int NumRegs, unsigned * pData)
 	{
 		*pData++ = ADS1248_SPI_SendByte(0xFF);
 	} 
-	//ADS1248_START_L();
 	ADS1248_DISABLE(); 
 	
 	return;
@@ -1005,51 +1003,44 @@ int ADS1248RDATACRead(void)		// reads data directly based on RDATAC mode (writes
 	return data;
 }
 
-int ADS1248RDATARead(void)		// reads data directly based on RDATAC mode (writes NOP) and 32 SCLKs
+int ADS1248ReadDATA(void)		// reads data directly based on RDATAC mode (writes NOP) and 32 SCLKs
 {
 	static int data;
-	// assert CS to start transfer 
+	
 	ADS1248_ENABLE();  
-	ADS1248_START_H(); 
-	__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
-	ADS1248_START_L();  
-	//while (0 == IS_ADS1248_READY()){}
-	ADS1248WaitForDataReady (0);
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+  //ADS1248_SPI_SendByte(ADS1248_CMD_WAKEUP);
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	//ADS1248_SPI_SendByte(ADS1248_CMD_SDATAC); 
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	ADS1248_SPI_SendByte(ADS1248_CMD_SYNC); 
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	ADS1248_DISABLE();  
+  while ( IS_ADS1248_READY() ); 
+	ADS1248_ENABLE();  
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	//ADS1248_SPI_SendByte(ADS1248_CMD_WAKEUP);
+	ADS1248_SPI_SendByte(ADS1248_CMD_RDATA); 
 	// get the conversion result
-	data = ADS1248_SPI_SendByte(0xFF);
-	data = (data << 8) | ADS1248_SPI_SendByte(0xFF);
-	data = (data << 8) | ADS1248_SPI_SendByte(0xFF);
+	data = ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	data = (data << 8) | ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	data = (data << 8) | ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
 	// sign extend data if the MSB is high (24 to 32 bit sign extension)
 	if (data & 0x800000)
 		data |= 0xff000000;
 	// de-assert CS
-	ADS1248_DISABLE();  
+  
+	//ADS1248_SPI_SendByte(ADS1248_CMD_SDATAC);
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	//ADS1248_SPI_SendByte(ADS1248_CMD_SLEEP); 
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	ADS1248_DISABLE(); 
 	
 	return data;
 }
-
-void Delay1us(void){
-  __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
-	__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
-}
-
-void Delay10us(void){
-	volatile int i=32; 
-	while(i--);
-	__nop();__nop();__nop();__nop();__nop();__nop();
-}
-
-void Delay200us(void){
-  volatile int i=700;
-	while(i--);
-}
-
+ 
 void Delay10ms(void){
   volatile int i=35555;
 	while(i--);
 }
-
-void Delay20ms(void){
-	volatile int i=71800;
-	while(i--);
-}
+ 

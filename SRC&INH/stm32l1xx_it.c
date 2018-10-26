@@ -5,7 +5,7 @@
 #include "usb_istr.h" 
 #include "main.h"
 #include "DL212_easy_mode.h"
-
+#include "ads1248.h"
  
 /*rtc int*/
 void EXTI2_IRQHandler(void){
@@ -29,7 +29,7 @@ void EXTI9_5_IRQHandler(void){
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-/*gprs and zigbee
+//gprs and zigbee
 void DMA1_Channel4_IRQHandler(void){
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
@@ -37,8 +37,8 @@ void DMA1_Channel4_IRQHandler(void){
   DMA_Cmd(DMA1_Channel4,DISABLE);
 	USART1_DMA_Send_State = 0;
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}*/
-/*gprs and zigbee
+}
+//gprs and zigbee
 void USART1_IRQHandler(void){
 	if(USART_GetITStatus(USART1,USART_IT_IDLE) != RESET){
 		USART1_DMA_Rec_Cnt = USART1->SR;
@@ -49,7 +49,7 @@ void USART1_IRQHandler(void){
     DMA_Cmd(DMA1_Channel5,ENABLE);
 	}
 	USART_ClearITPendingBit(USART1,USART_IT_IDLE);
-}*/
+}
 /*c1 sdi12 or rs232 reiceive*/
 void USART2_IRQHandler(void){
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;

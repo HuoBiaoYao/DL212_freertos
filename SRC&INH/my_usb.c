@@ -13,7 +13,7 @@ void My_USB_Init(void){
 }
  
 unsigned char USB_Send(unsigned char *buf,int len){
-  int i,pack_num;
+  int i=0,pack_num;
  
   if(1 == sUSB_Para.packet_sent){
     pack_num = len/63+1;

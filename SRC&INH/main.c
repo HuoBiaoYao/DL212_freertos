@@ -36,39 +36,25 @@ int main(void){
   
   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4); //设置系统中断优先级分组4
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR,ENABLE); 
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA|RCC_AHBPeriph_GPIOB|RCC_AHBPeriph_GPIOC|RCC_AHBPeriph_GPIOD,ENABLE); 
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG,ENABLE);
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA|RCC_AHBPeriph_GPIOB|RCC_AHBPeriph_GPIOC|RCC_AHBPeriph_GPIOD,ENABLE);  
+	EXTI_DeInit();
 	delay_init(); //延时函数初始化 
 	USART1_Config(115200);
 	My_USB_Init(); 
-	UserGpio_Config();  
-	IIC_PCF_GPIO_Init();
-	//PCF8563_Config(); 
+	UserGpio_Config(); 
 	psFram_Func->init(); 
-  psFlash_Func->init(); 
-	psSDI12_Func->init(0);	
-	psSDI12_Func->init(1); 
-  psSW12_Func->init();//SW12控制口初始化
-	psSW12_Func->sw(0,1);
-	TIM5_TI1FP1_Init();//F_Mea---PA0(TIM5_CH1) 
-  TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
-	if(sDL212_Config.mea_time[0]){
-	  TIM10_Init(sDL212_Config.mea_time[0]);
-	}
-	else{
-	  TIM10_Init(1000);
-	} 
-	if(sDL212_Config.mea_time[1]){
-	  TIM6_Init(sDL212_Config.mea_time[1]);
-	}
-	else{
-	  TIM6_Init(1000);
-	}   
+  psFlash_Func->init();
+	IIC_PCF_GPIO_Init(); 
+	psSW12_Func->init();//SW12控制口初始化
+	ADS1248_Init(); 
+	DL212_EasyMode_Init(); 
 	//delay_ms(3000); 
   //DBGMCU_Config(DBGMCU_SLEEP,ENABLE);
 	//创建开始任务
   xTaskCreate((TaskFunction_t )Task_Start,           //任务函数
               (const char*    )"start_task",         //任务名称
-              (uint16_t       )32,                   //任务堆栈大小
+              (uint16_t       )64,                   //任务堆栈大小
               (void*          )NULL,                 //传递给任务函数的参数
               (UBaseType_t    )1,                    //任务优先级
               (TaskHandle_t*  )&Task_Start_Handler); //任务句柄              
@@ -86,25 +72,9 @@ void Task_Start(void *pvParameters){
 	BinarySemaphore_SDI12_FirstByte = xSemaphoreCreateBinary(); 
 	BinarySemaphore_SDI12_CR_LF = xSemaphoreCreateBinary(); 
  	xSemaphore = xSemaphoreCreateMutex(); 
-  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL     || 
-		 BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL ||
-	   xSemaphore==NULL){
-	  while(1); 
+  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL || xSemaphore==NULL){
+	  delay_ms(10000);  
 	} 
-	
-	ADS1248_SPI_Init(); 
-	ADS1248_GPIO_Init();
-	ADS1248SetVoltageReference(1); 	 
-  ADS1248SetGain(0); 
-	ADS1248SetDataRate(9);   
-
-	//psC_Pulse_Func->init(0);//C1脉冲测量
-	//psC_Pulse_Func->init(1);//C2脉冲测量   
- // sDL212_State.battery = psSE_FUNC->bat_read();
- // psSE_FUNC->vref_read();  
-	
-  //TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
-  //TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
 	//SDI12_C1_SEND_DISABLE();
 	//psC_RS232_Func->init(0,0);  
 	/*OneShotTimer_Handle = xTimerCreate((const char*)"OneShotTimer",
@@ -114,67 +84,77 @@ void Task_Start(void *pvParameters){
 															       (TimerCallbackFunction_t)OneShotCallback);*/
     xTaskCreate((TaskFunction_t )Task1, 
                 (const char*    )"task for ...", 
-                (uint16_t       )128, 
+                (uint16_t       )512, 
                 (void*          )NULL, 
                 (UBaseType_t    )2,	
                 (TaskHandle_t*  )&Task1_Handler); 
-
-    /*xTaskCreate((TaskFunction_t )Task2,
+    xTaskCreate((TaskFunction_t )Task2,
                 (const char*    )"task for ...",   
-                (uint16_t       )1024, 
+                (uint16_t       )512, 
                 (void*          )NULL,
                 (UBaseType_t    )1,
-                (TaskHandle_t*  )&Task2_Handler);*/
-	  /*xTaskCreate((TaskFunction_t )Task3,     
-                (const char*    )"task for ...",   
-                (uint16_t       )1024, 
-                (void*          )NULL,
-                (UBaseType_t    )1,
-                (TaskHandle_t*  )&Task3_Handler); */
+                (TaskHandle_t*  )&Task2_Handler);
     vTaskDelete(Task_Start_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区
 }
   
-unsigned int DL212_EasyMode_Scan_Count=0; 
-float volt[3];
+unsigned int Scan_Count=0; 
 void Task1(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000);  
-	
-	//DL212_EasyMode_Init(); 
+	 
 	//xLastWakeTime = xTaskGetTickCount();  
   while(1){  
     //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
-		vTaskDelay(1000); 
-		//volt[0] = VoltSE(0,0);
-		//volt[1] = VoltSE(1,0);
-		volt[2] = VoltDiff(0,0);  
-		/*if(DL212_EasyMode){ 
-      DL212_EasyMode_Scan(); 
-      DL212_EasyMode_Scan_Count++; 
-			memcpy(usRegInputBuf,Value,28); 
-		} 
-		else{ 
-		  vTaskSuspend(Task1_Handler); 
-		} */
+		#ifndef USE_PCF8563
+		if(sDL212_Config.scan){
+		  vTaskDelay(sDL212_Config.scan);
+		}
+		else{
+		  vTaskDelay(1000);
+		}
+		#else
+		vTaskDelay(100);
+		#endif
+    DL212_EasyMode_Scan(); 
+		//VoltSe(1,0);
+    Scan_Count++; 
+		//GPIO_ToggleBits(GPIOC,GPIO_Pin_0);
+		//vTaskSuspend(Task1_Handler); 
 	} 
 } 
 
 void Task2(void *pvParameters){ 
 	BaseType_t err=pdFALSE; 
- 
+  static unsigned int count=0;
+	
   while(1){ 
-    if(USB_DETECT()){ 
-			SDI12_Transparent(1);
-      /*if(bDeviceState == CONFIGURED){ 
-        CDC_Receive_DATA(); 
-        if(sUSB_Para.packet_rec){				
+    if(USB_DETECT()){
+			if(bDeviceState == CONFIGURED){ 
+				CDC_Receive_DATA(); 
+				if(sUSB_Para.packet_rec){				
 					DL212_Config_Utility();
 					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len); 
-          sUSB_Para.packet_rec = 0; 
-          sUSB_Para.rec_len = 0; 
-        } 
-      }*/
+					sUSB_Para.packet_rec = sUSB_Para.rec_len  = 0;
+				} 
+				switch(DL212_DebugMode){
+				  case SDI12_0_TRANSPARENT:
+					  SDI12_Transparent(0);
+				  break;
+				  case SDI12_1_TRANSPARENT:
+				  	SDI12_Transparent(1);
+				  break;
+				  default:
+			    break; 
+			  }
+				if(Scan_Count > count){
+				  count = Scan_Count;
+					if(VALUE_DISPLAY_ON == DL212_DebugMode){
+						USB_Send((unsigned char*)Value_Ascii,Value_Ascii_Len); 
+					}
+				} 
+			}
+			
 	  } 
 		else{ 
 		  if(BinarySemaphore_USB != NULL){ 
@@ -228,12 +208,12 @@ void UserGpio_Config(void){
 	
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC,ENABLE); 
 	
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_7;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_40MHz;
-  GPIO_Init(GPIOB,&GPIO_InitStructure);
+  GPIO_Init(GPIOC,&GPIO_InitStructure);
 	
 	GPIOC->BSRRL = GPIO_Pin_7; 
 }

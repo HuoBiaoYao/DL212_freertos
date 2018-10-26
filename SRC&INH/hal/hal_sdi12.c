@@ -7,9 +7,7 @@
 #include "delay.h"
 #include "my_usb.h"   
 #include "stm32l1xx_gpio.h"
-
-
-char SDI12_Data[2][SDI12_RX_SIZE];
+ 
 unsigned int SDI12_Data_Bytes[2];
 
 __SDI12_BUS eSDI12_BUS[2];

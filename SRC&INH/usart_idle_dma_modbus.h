@@ -23,8 +23,8 @@
 #define MB_UART_RX_PORT            ( GPIOA )
 #define MB_UART_RX_PIN             ( GPIO_Pin_10 )
 #define MB_UART_IRQ_CH             ( USART1_IRQn )
-#define MB_Slave_USART_IRQHandler  ( USART1_IRQHandler )
-#define MB_Slave_DMA_TX_IRQHandler ( DMA1_Channel4_IRQHandler )
+//#define MB_Slave_USART_IRQHandler  ( USART1_IRQHandler )
+//#define MB_Slave_DMA_TX_IRQHandler ( DMA1_Channel4_IRQHandler )
  
 struct MB_FUNCTION{
   void (*init)(unsigned int baudrate); 

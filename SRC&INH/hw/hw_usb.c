@@ -27,7 +27,7 @@ void Set_System(void){
   EXTI_InitTypeDef EXTI_InitStructure;
   NVIC_InitTypeDef NVIC_InitStructure;
 	
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+  //RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
   RCC_AHBPeriphClockCmd(USB_DETECT_CLK,ENABLE);
 	
   GPIO_InitStructure.GPIO_Pin = USB_DETECT_PIN;

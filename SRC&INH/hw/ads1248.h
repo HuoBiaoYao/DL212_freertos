@@ -24,7 +24,7 @@
 #define ADS1248_SI_AF         	 GPIO_AF_SPI1
 
 #define ADS1248_DISABLE()        GPIO_SetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN)
-#define ADS1248_ENABLE()         delay_us(10),GPIO_ResetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN)
+#define ADS1248_ENABLE()         GPIO_ResetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN)
 //Conversion start
 #define ADS1248_START_GPIO_PIN   GPIO_Pin_12
 #define ADS1248_START_GPIO_PORT  GPIOB
@@ -313,7 +313,7 @@
 
 void ADS1248_GPIO_Init(void);
 void ADS1248_SPI_Init(void); 
-static unsigned char ADS1248_SPI_SendByte(unsigned char byte);
+unsigned char ADS1248_SPI_SendByte(unsigned char byte);
 int ADS1248WaitForDataReady(int Timeout);
 
 void ADS1248ReadRegister(int StartAddress, int NumRegs, unsigned * pData);   // Read the register(s) (NumReg is the total number of registers read) 
@@ -387,11 +387,8 @@ unsigned char ADS1248GetGPIO(void);
 
 /* Miscellaneous Commands */
 int ADS1248RDATACRead(void);		// reads data directly based on RDATAC mode (writes NOP) and 32 SCLKs
-int ADS1248RDATARead(void); 
+int ADS1248ReadDATA(void); 
 
-void Delay1us(void);
-void Delay10us(void);
-void Delay200us(void);
-void Delay10ms(void);
-void Delay20ms(void);
+void ADS1248_Init(void); 
+void Delay10ms(void); 
 #endif
