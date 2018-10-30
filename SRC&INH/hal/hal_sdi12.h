@@ -2,7 +2,7 @@
 #define  __HAL_SDI12_H
 #include "hw_c_port.h"
 
-#define SDI12_RX_SIZE   80
+#define SDI12_RX_SIZE   200
 #define SDI12_TX_SIZE   80
   
 #define SDI12_C1_SEND_ENABLE()    C1_CTRL_PORT->BSRRL = C1_CTRL_PIN;//GPIO_SetBits  (C1_CTRL_PORT,C1_CTRL_PIN) 

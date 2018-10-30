@@ -23,8 +23,11 @@
 #define ADS1248_SI_SOURCE      	 GPIO_PinSource7
 #define ADS1248_SI_AF         	 GPIO_AF_SPI1
 
-#define ADS1248_DISABLE()        GPIO_SetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN)
-#define ADS1248_ENABLE()         GPIO_ResetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN)
+#define ADS1248_DISABLE()        __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();\
+                                 GPIO_SetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN);\
+                                 __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+#define ADS1248_ENABLE()         GPIO_ResetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN);\
+                                 __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
 //Conversion start
 #define ADS1248_START_GPIO_PIN   GPIO_Pin_12
 #define ADS1248_START_GPIO_PORT  GPIOB
@@ -44,7 +47,7 @@
 #define ADS1248_START_H()        GPIO_SetBits(ADS1248_START_GPIO_PORT,ADS1248_START_GPIO_PIN)
 #define ADS1248_START_L()        GPIO_ResetBits(ADS1248_START_GPIO_PORT,ADS1248_START_GPIO_PIN)
 
-#define IS_ADS1248_READY()       GPIO_ReadInputDataBit(ADS1248_GPIO_PORT,ADS1248_DRDY_GPIO_PIN)// 
+#define IS_ADS1248_READY()       GPIO_ReadInputDataBit(ADS1248_DRDY_GPIO_PORT,ADS1248_DRDY_GPIO_PIN) 
 //#define USE_INTER_VREF
 /* Error Return Values */
 #define ADS1248_NO_ERROR        0
@@ -318,7 +321,6 @@ int ADS1248WaitForDataReady(int Timeout);
 
 void ADS1248ReadRegister(int StartAddress, int NumRegs, unsigned * pData);   // Read the register(s) (NumReg is the total number of registers read) 
 void ADS1248WriteRegister(int StartAddress, int NumReg, unsigned * pData);   // Write the register(s) (NumReg is the total number of registers written)
-void ADS1248WriteSequence(int StartAddress, int NumReg, unsigned * pData);   // Write the register(s) (NumReg is the total number of registers written)
 void ADS1248SendRDATAC(void);					// Read data continuous mode
 void ADS1248SendSDATAC(void);					// Stop read data continuous mode
 void ADS1248SendSYSOCAL(void);					// System offset calibration
@@ -389,6 +391,7 @@ unsigned char ADS1248GetGPIO(void);
 int ADS1248RDATACRead(void);		// reads data directly based on RDATAC mode (writes NOP) and 32 SCLKs
 int ADS1248ReadDATA(void); 
 
+float ADS1248Convert(unsigned char pga);
 void ADS1248_Init(void); 
 void Delay10ms(void); 
 #endif

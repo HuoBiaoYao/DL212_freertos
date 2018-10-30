@@ -18,10 +18,10 @@ struct CONFIG{
   float mul[10];
   float offset[10];
   unsigned char datatype[4];//周期，频率，计数
-  char s0[3];//分隔符//包含结束符    
-  char s1[3];//起始符//包含结束符    
-  char s2[3];//终止符//包含结束符    
-  char sdi12_cmd[2][200];
+  char s0[2][3];//分隔符//包含结束符    
+  char s1[2][3];//起始符//包含结束符    
+  char s2[2][3];//终止符//包含结束符    
+  char sdi12_cmd[2][300];
   unsigned char lrc;
 };
 

@@ -1,13 +1,59 @@
 #include "ads1248.h"
 #include "delay.h"
 
+float ADS1248Convert(unsigned char pga){
+	int i_adc;
+	float f_adc,cal_mul,cal_offset=0;
+	
+	i_adc = ADS1248ReadDATA();
+  f_adc = (float)i_adc*3000/0x7FFFFF;
+	switch(pga){
+	  case 0:
+			cal_mul = f_adc/2497;
+			cal_offset = 0.17;
+		break;
+		case 1:
+			cal_offset = 0.2;
+		break;
+		case 2:
+			cal_offset = 0.42;
+		break;
+		default:
+			cal_offset = 0.17;
+		break;
+	}
+	f_adc = f_adc;
+	return f_adc;
+}
+
+int ADS1248ReadDATA(void){ 
+	static int data;
+ 
+	ADS1248_ENABLE();
+  ADS1248_START_H();
+  __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	ADS1248_START_L(); 
+	while ( ( IS_ADS1248_READY() ) );  
+	ADS1248_SPI_SendByte(ADS1248_CMD_RDATA); 
+	// get the conversion result
+	data = ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	data = (data << 8) | ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	data = (data << 8) | ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+	// sign extend data if the MSB is high (24 to 32 bit sign extension)
+	if (data & 0x800000)
+		data |= 0xff000000;
+	// de-assert CS  
+	ADS1248_DISABLE(); 
+	
+	return data;
+}
+
 void ADS1248_Init(void){
-	Delay10ms(); Delay10ms(); 
-	ADS1248_SPI_Init(); 
+	Delay10ms(); Delay10ms();
+	ADS1248_SPI_Init(); 	
 	ADS1248_GPIO_Init(); 
-	ADS1248SetVoltageReference(1);
-  ADS1248SetGain(0); 
 	ADS1248SetDataRate(9); 
+	ADS1248SetVoltageReference(1); 
 }
 
 void ADS1248_GPIO_Init(void){
@@ -60,11 +106,12 @@ void ADS1248_GPIO_Init(void){
   GPIO_Init(ADS1248_DRDY_GPIO_PORT, &GPIO_InitStructure);
 	
 	ADS1248_START_H();
+	ADS1248_ENABLE(); 
 	ADS1248_RST_H();
-  ADS1248_ENABLE();
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	ADS1248_SPI_SendByte(ADS1248_CMD_RESET);
-	Delay10ms(); 
+	ADS1248_SPI_SendByte(ADS1248_CMD_RESET); 
+	Delay10ms();
+  ADS1248_START_L(); 	
+	ADS1248_DISABLE(); 
 }
 
 void ADS1248_SPI_Init(void){
@@ -139,6 +186,7 @@ void ADS1248ReadRegister(int StartAddress, int NumRegs, unsigned * pData)
 	{
 		*pData++ = ADS1248_SPI_SendByte(0xFF);
 	} 
+	ADS1248_START_L(); 
 	ADS1248_DISABLE(); 
 	
 	return;
@@ -157,13 +205,10 @@ void ADS1248WriteRegister(int StartAddress, int NumRegs, unsigned * pData){
 	{
 		ADS1248_SPI_SendByte(*pData++);
 	} 
-	//ADS1248_START_L(); 
+	ADS1248_START_L(); 
 	ADS1248_DISABLE();
 }
  
-void ADS1248WriteSequence(int StartAddress, int NumReg, unsigned * pData){
-
-}
 
 void ADS1248SendRDATAC(void)
 {
@@ -1002,43 +1047,7 @@ int ADS1248RDATACRead(void)		// reads data directly based on RDATAC mode (writes
 	ADS1248_DISABLE();
 	return data;
 }
-
-int ADS1248ReadDATA(void)		// reads data directly based on RDATAC mode (writes NOP) and 32 SCLKs
-{
-	static int data;
-	
-	ADS1248_ENABLE();  
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-  //ADS1248_SPI_SendByte(ADS1248_CMD_WAKEUP);
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	//ADS1248_SPI_SendByte(ADS1248_CMD_SDATAC); 
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	ADS1248_SPI_SendByte(ADS1248_CMD_SYNC); 
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	ADS1248_DISABLE();  
-  while ( IS_ADS1248_READY() ); 
-	ADS1248_ENABLE();  
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	//ADS1248_SPI_SendByte(ADS1248_CMD_WAKEUP);
-	ADS1248_SPI_SendByte(ADS1248_CMD_RDATA); 
-	// get the conversion result
-	data = ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	data = (data << 8) | ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	data = (data << 8) | ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	// sign extend data if the MSB is high (24 to 32 bit sign extension)
-	if (data & 0x800000)
-		data |= 0xff000000;
-	// de-assert CS
   
-	//ADS1248_SPI_SendByte(ADS1248_CMD_SDATAC);
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	//ADS1248_SPI_SendByte(ADS1248_CMD_SLEEP); 
-	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
-	ADS1248_DISABLE(); 
-	
-	return data;
-}
- 
 void Delay10ms(void){
   volatile int i=35555;
 	while(i--);

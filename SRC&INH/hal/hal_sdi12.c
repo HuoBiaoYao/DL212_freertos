@@ -324,43 +324,18 @@ __SDI12_RSL SDI12_Transparent(unsigned char port){
 	
 	return SDI12_OK;
 }
-    
-/*__SDI12_RSL SDI12Recorder(char port){ 
-	unsigned int retry=3,i=0,j,len=0; 
-	
-	sSDI12_Para[port].tx_buf[0] = 'A';
-	sSDI12_Para[port].tx_buf[1] = 'A';
-	sSDI12_Para[port].tx_buf[2] = '1';
-	sSDI12_Para[port].tx_buf[3] = '!';
-	//len = strlen(cmd);
-	while(retry--){
-		eSDI12_BUS[port] = SDI12_BUSY; 
-		psSDI12_Func->send(port,sSDI12_Para[port].tx_buf,4); 
-		delay_ms(8);
-		//delay_us(8000); 
-		eSDI12_BUS[port] = SDI12_REICEIVE; 
-    if(BinarySemaphore_SDI12_CR_LF != NULL){ 
-      if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,810) == pdTRUE){ 
-        SDI12_DataProcess(port);
-			  sSDI12_Para[port].rx_ptr = 0;
-		    break;
-		  } 
-    } 
-		eSDI12_BUS[port] = SDI12_IDLE;
-	}
-	
-	return SDI12_OK;
-}*/
-
+ 
+char SDI12_Data_Ascii[2][400];
+unsigned int SDI12_Data_Ascii_Cnt[2]={0,0};
 __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){ 
 	unsigned int retry,i=0,j=0,M_cmd_delay_ms=0;
 	
 	if(0 == *(sdicmd)){
 	  return 1;
 	}
-	while(*(sdicmd+i) != '\r'){
+	while(*(sdicmd+i) != 0){
 	  if(*(sdicmd+i) == '!'){
-			retry = 3;
+			retry = 1;
 		  while(retry--){
 	  	  eSDI12_BUS[port] = SDI12_BUSY; 
 		    psSDI12_Func->send(port,sdicmd+j,i-j+1);  
@@ -374,13 +349,13 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 									if(*sSDI12_Para[port].rx_buf == *(sdicmd+j)){
 										if(*(sdicmd+j+1) == 'M'){
 											sSDI12_Para[port].rx_ptr = 0;
-											M_cmd_delay_ms = ((*(sSDI12_Para[port].rx_buf+1)-0x30)*100+(*(sSDI12_Para[port].rx_buf+2)-0x30)*10+(*(sSDI12_Para[port].rx_buf+3)-0x30))*1000;
-											while(M_cmd_delay_ms--){ 
-												if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,1) == pdTRUE){
-													sSDI12_Para[port].rx_ptr = 0;
-													break;
-												} 
-											} 
+											M_cmd_delay_ms = ((*(sSDI12_Para[port].rx_buf+1)-0x30)*100
+											                 +(*(sSDI12_Para[port].rx_buf+2)-0x30)*10
+											                 +(*(sSDI12_Para[port].rx_buf+3)-0x30))*1000;
+											if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,M_cmd_delay_ms) == pdTRUE){
+												sSDI12_Para[port].rx_ptr = 0;
+												break;
+											}
 										} 
 										else if(*(sdicmd+j+1) == 'A'){//禁止修改地址
 											break;
@@ -391,7 +366,7 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 										} 
 										break;
 									}
-									else{
+									else{//?
 										SDI12_DataProcess(port);
 									  sSDI12_Para[port].rx_ptr = 0;
 										break;
@@ -400,8 +375,7 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 								}
 							}
 						}
-					}			
-    	
+					}	
 				sSDI12_Para[port].rx_ptr = 0;
 		    eSDI12_BUS[port] = SDI12_IDLE;
     	}
@@ -409,23 +383,30 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
     }
 		i++;
 	}
-	 
+	SDI12_Data_Ascii_Cnt[port] = 0;
+	
 	return SDI12_OK;
 }
-#include "DL212_easy_mode.h"
-char SDI12_Data_Ascii[2][400];
+#include "DL212_easy_mode.h" 
 void SDI12_DataProcess(unsigned char port){
-	unsigned int i,j=0; 
+	unsigned int j=2; 
   
+	if(*(sSDI12_Para[port].rx_buf+1)=='\r' ||
+		 *(sSDI12_Para[port].rx_buf)==0
+	  ){
+	  return;
+	}
 	while(*(sSDI12_Para[port].rx_buf+j) != '\r'){
+		if(j >= SDI12_RX_SIZE){
+		  return;
+		}
 		if('+'==*(sSDI12_Para[port].rx_buf+j) || '-'==*(sSDI12_Para[port].rx_buf+j)){
-			*(&SDI12_Data_Ascii[port][0]+i++) = ',';
-			*(&SDI12_Data_Ascii[port][0]+i++) = *(sSDI12_Para[port].rx_buf+j++);
+			*(&SDI12_Data_Ascii[port][0]+SDI12_Data_Ascii_Cnt[port]++) = ',';
+			*(&SDI12_Data_Ascii[port][0]+SDI12_Data_Ascii_Cnt[port]++) = *(sSDI12_Para[port].rx_buf+j++);
 		}
 		else{
-			*(&SDI12_Data_Ascii[port][0]+i++)= *(sSDI12_Para[port].rx_buf+j++);
+			*(&SDI12_Data_Ascii[port][0]+SDI12_Data_Ascii_Cnt[port]++)= *(sSDI12_Para[port].rx_buf+j++);
 		}
 	}
-	*(&SDI12_Data_Ascii[port][0]+i++) = '\r',*(&SDI12_Data_Ascii[port][0]+i++) = '\n',*(&SDI12_Data_Ascii[port][0]+i++) = 0;
-	//printf("%c%c,d%d,%s",sDL212_Config.device_id[0],sDL212_Config.device_id[1],port+1,&SDI12_Data_Ascii[port][0]);//和其他数据一起发送
+	*(&SDI12_Data_Ascii[port][0]+SDI12_Data_Ascii_Cnt[port]++) = ',';//?
 }

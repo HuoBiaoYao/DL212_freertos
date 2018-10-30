@@ -14,7 +14,7 @@
 
 struct CONFIG sDL212_Config;
 
-float Value[8],PSW_Value,PLL_Value,C1_Value,C2_Value;
+float Value[8],Batt,PSW_Value,PLL_Value,C1_Value,C2_Value;
 char Value_Ascii[400];
 unsigned int Value_Ascii_Len=0;
 unsigned char Value_Count=0,DL212_DebugMode=VALUE_DISPLAY_ON; 
@@ -26,14 +26,14 @@ float Battery(void){
 	
 	ADS1248SetChannel(2,0);
 	ADS1248SetChannel(3,1);  
-	bat = (float)ADS1248ReadDATA()*3/0x7FFFFF;
+	bat = ADS1248Convert(0)*1000;
 	bat = bat*251/51;
 	vTaskDelay(1); 
 	return bat;
 }
 float VoltDiff(unsigned char chan,unsigned char range){
 	float volt;
-	ADS1248_SPI_SendByte(ADS1248_CMD_SDATAC); 
+ 
 	switch(range){
 	  case 0:
 			ADS1248SetGain(0);
@@ -61,14 +61,14 @@ float VoltDiff(unsigned char chan,unsigned char range){
 			ADS1248SetChannel(7,1); 
 		break;
 	} 
-  volt = (float)ADS1248ReadDATA()*3/0x7FFFFF; 
-	vTaskDelay(1); 
+  volt = ADS1248Convert(range); 
+	
 	return volt;
 }
 
 float VoltSe(unsigned char chan,unsigned char range){
 	float volt;
-	 ADS1248_SPI_SendByte(ADS1248_CMD_SDATAC); ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+ 
 	switch(range){  
 	  case 0:
 			ADS1248SetGain(0);
@@ -105,8 +105,7 @@ float VoltSe(unsigned char chan,unsigned char range){
 		default:
 		break;
 	}
-  volt = (float)ADS1248ReadDATA()*3/0x7FFFFF;
-	vTaskDelay(1); 
+  volt = ADS1248Convert(range); 
 	
 	return volt;
 } 
@@ -121,7 +120,8 @@ void DL212_EasyMode_Scan(void){
 //#endif
 			Value_Count = 0;
 			Value_Ascii_Len = 0;
-		 //ADS1248_SPI_SendByte(ADS1248_CMD_WAKEUP);
+ 
+		 //Batt = Battery(); 
 		 if(0 == sDL212_Config.mode[0]){//HL-1
 				if(1 == sDL212_Config.sw[0]){
 					if(1== sDL212_Config.vx_sw[0]){
@@ -149,7 +149,7 @@ void DL212_EasyMode_Scan(void){
 					if(1== sDL212_Config.vx_sw[2]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
 					}
-				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[2]); 
+				  Value[Value_Count++] = VoltDiff(1,sDL212_Config.range[2]); 
 				} 
 			}
 			else{
@@ -171,7 +171,7 @@ void DL212_EasyMode_Scan(void){
 					if(1== sDL212_Config.vx_sw[4]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
 					}
-				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[4]); 
+				  Value[Value_Count++] = VoltDiff(2,sDL212_Config.range[4]); 
 				} 
 			}
 			else{
@@ -187,8 +187,7 @@ void DL212_EasyMode_Scan(void){
 					}
 					Value[Value_Count++] = VoltSe(5,sDL212_Config.range[5]); 
 				}
-			}
-			//ADS1248_SPI_SendByte(ADS1248_CMD_SLEEP);
+			} 
 			if(2 != sDL212_Config.sw[6]){//0:常开  1:测量时打开   2：关闭
 			  psSW12_Func->sw(0,1);
 			} 
@@ -201,19 +200,21 @@ void DL212_EasyMode_Scan(void){
 			//把除了SDI12传感器之外的数据先处理成ascii
 			Value_Ascii_Len = sprintf(Value_Ascii,"%c%c,",sDL212_Config.device_id[0],sDL212_Config.device_id[1]);  
 			for(i=0;i<Value_Count;i++){
-			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.3f,",Value[i]);
+			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",Value[i]);
 			}
 			if(1 == sDL212_Config.sw[9]){
 			  switch(sDL212_Config.mode[3]){
 			    case 0:
 						SDI12Recorder(0,(unsigned char*)&sDL212_Config.sdi12_cmd[0][0]);  
 					  len = strlen((const char*)&SDI12_Data_Ascii[0][0]);
-						memcpy(Value_Ascii+Value_Ascii_Len,&SDI12_Data_Ascii[0][0],len);
-					  Value_Ascii_Len += len;
+						if(len > 1){
+						  memcpy(Value_Ascii+Value_Ascii_Len,&SDI12_Data_Ascii[0][0],len);
+					    Value_Ascii_Len += len;
+						} 
 					break;
 					case 1:
 						//C1_Value;
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.3f,",C1_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",C1_Value);
 					break;
 					default:
 					break;
@@ -224,19 +225,25 @@ void DL212_EasyMode_Scan(void){
 			    case 0:
 						SDI12Recorder(1,(unsigned char*)&sDL212_Config.sdi12_cmd[1][0]);
 					  len = strlen((const char*)&SDI12_Data_Ascii[1][0]);
-						strcpy(Value_Ascii+Value_Ascii_Len,&SDI12_Data_Ascii[1][0]); 
-					  Value_Ascii_Len = Value_Ascii_Len+len+1;
+					  if(len > 1){
+						  strcpy(Value_Ascii+Value_Ascii_Len,&SDI12_Data_Ascii[1][0]); 
+					    Value_Ascii_Len = Value_Ascii_Len+len+1;  
+						} 
 					break;
 					case 1:
 					  //C2_Value;
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.3f,",C2_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",C2_Value);
 					break;
 					default:
 					break;
 			  }	
 			} 
-			Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"\r\n"); 
-			 
+			if(0 == *(Value_Ascii+Value_Ascii_Len)){
+				Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len-1,"\r\n"); 
+			}
+			else{
+				Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"\r\n"); 
+			} 
 			pack = Value_Ascii_Len/50+1;
 			for(i=0;i<pack-1;i++){
 				USART1_DMA_Send_State = 1; 

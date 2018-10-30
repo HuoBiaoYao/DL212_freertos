@@ -117,7 +117,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>t碝t組?鐃</Name>
+          <Name>/</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -151,7 +151,7 @@
           <Type>0</Type>
           <LineNumber>205</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134223022</Address>
+          <Address>134222982</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -165,9 +165,9 @@
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>149</LineNumber>
+          <LineNumber>241</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134219742</Address>
+          <Address>134220436</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -176,66 +176,73 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\SRC&amp;INH\DL212_easy_mode.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\DL212_freertos\SRC&amp;INH/DL212_easy_mode.c\149</Expression>
+          <Expression>\\DL212_freertos\SRC&amp;INH/DL212_easy_mode.c\241</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>debug_Scan_Count</ItemText>
+          <ItemText>Value</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Value</ItemText>
+          <ItemText>DL212_DebugMode</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>DL212_DebugMode</ItemText>
+          <ItemText>sUSB_Para</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sUSB_Para</ItemText>
+          <ItemText>sDL212_Config</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sDL212_Config</ItemText>
+          <ItemText>Value_Count</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Value_Count</ItemText>
+          <ItemText>Value_Ascii</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Value_Ascii</ItemText>
+          <ItemText>Scan_Count</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>count,0x0A</ItemText>
+          <ItemText>SDI12_Data_Ascii[0]</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Scan_Count</ItemText>
-        </Ww>
-        <Ww>
-          <count>9</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>count</ItemText>
-        </Ww>
-        <Ww>
-          <count>10</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>volt</ItemText>
+          <ItemText>sSDI12_Para</ItemText>
         </Ww>
       </WatchWindow1>
+      <WatchWindow2>
+        <Ww>
+          <count>0</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>SDI12_Data_Ascii_Cnt</ItemText>
+        </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>Value_Ascii</ItemText>
+        </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>Value_Ascii_Len,0x0A</ItemText>
+        </Ww>
+      </WatchWindow2>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
