@@ -103,24 +103,25 @@ void Task1(void *pvParameters){
 	TickType_t xLastWakeTime; 
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000);  
 	 
-	//xLastWakeTime = xTaskGetTickCount();  
-  while(1){  
+	xLastWakeTime = xTaskGetTickCount();
+  while(1){
     //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
 		#ifndef USE_PCF8563
 		if(sDL212_Config.scan){
-		  vTaskDelay(sDL212_Config.scan);
+		  vTaskDelayUntil(&xLastWakeTime,sDL212_Config.scan);
 		}
 		else{
-		  vTaskDelay(1000);
+		  vTaskDelayUntil(&xLastWakeTime,1000);
 		}
 		#else
-		vTaskDelay(100);
+		vTaskDelayUntil(&xLastWakeTime,100);
 		#endif
     DL212_EasyMode_Scan(); 
-		//VoltSe(1,0);
-    Scan_Count++; 
-		//GPIO_ToggleBits(GPIOC,GPIO_Pin_0);
-		//vTaskSuspend(Task1_Handler); 
+		Scan_Count++; 
+		vTaskDelay(30); 
+		if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
+			vTaskSuspend(Task1_Handler); 
+		}
 	} 
 } 
 
@@ -152,11 +153,17 @@ void Task2(void *pvParameters){
 					if(VALUE_DISPLAY_ON == DL212_DebugMode){
 						USB_Send((unsigned char*)Value_Ascii,Value_Ascii_Len); 
 					}
-				} 
+				}				
 			}
-			
+			if(VALUE_DISPLAY_ON==DL212_DebugMode || VALUE_DISPLAY_OFF==DL212_DebugMode){
+				vTaskResume(Task1_Handler); 
+			}
 	  } 
 		else{ 
+			if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
+				DL212_DebugMode = VALUE_DISPLAY_ON;
+				vTaskResume(Task1_Handler); 
+			}
 		  if(BinarySemaphore_USB != NULL){ 
         if(xSemaphoreTake(BinarySemaphore_USB,portMAX_DELAY) == pdTRUE){ 
 	        SystemInit(); 

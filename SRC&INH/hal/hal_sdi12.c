@@ -342,16 +342,14 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 				delay_ms(8);
 		    eSDI12_BUS[port] = SDI12_REICEIVE; 			
 				
-					if(BinarySemaphore_SDI12_FirstByte != NULL){
 						if(xSemaphoreTake(BinarySemaphore_SDI12_FirstByte,80) == pdTRUE){
-							if(BinarySemaphore_SDI12_CR_LF != NULL){ 
 								if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,700) == pdTRUE){
 									if(*sSDI12_Para[port].rx_buf == *(sdicmd+j)){
 										if(*(sdicmd+j+1) == 'M'){
 											sSDI12_Para[port].rx_ptr = 0;
-											M_cmd_delay_ms = ((*(sSDI12_Para[port].rx_buf+1)-0x30)*100
-											                 +(*(sSDI12_Para[port].rx_buf+2)-0x30)*10
-											                 +(*(sSDI12_Para[port].rx_buf+3)-0x30))*1000;
+											M_cmd_delay_ms = ((*(sSDI12_Para[port].rx_buf+1)-0x30)*100000
+											                 +(*(sSDI12_Para[port].rx_buf+2)-0x30)*10000
+											                 +(*(sSDI12_Para[port].rx_buf+3)-0x30))*1000; 
 											if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,M_cmd_delay_ms) == pdTRUE){
 												sSDI12_Para[port].rx_ptr = 0;
 												break;
@@ -359,6 +357,9 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 										} 
 										else if(*(sdicmd+j+1) == 'A'){//½ûÖ¹ÐÞ¸ÄµØÖ·
 											break;
+										}
+										else if('\r'==*(sSDI12_Para[port].rx_buf+1) && '\n'==*(sSDI12_Para[port].rx_buf+2)){
+											 sSDI12_Para[port].rx_ptr = 0;
 										}
 										else{
 											SDI12_DataProcess(port);
@@ -371,11 +372,8 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 									  sSDI12_Para[port].rx_ptr = 0;
 										break;
 									}
-            
 								}
-							}
 						}
-					}	
 				sSDI12_Para[port].rx_ptr = 0;
 		    eSDI12_BUS[port] = SDI12_IDLE;
     	}
@@ -407,6 +405,8 @@ void SDI12_DataProcess(unsigned char port){
 		else{
 			*(&SDI12_Data_Ascii[port][0]+SDI12_Data_Ascii_Cnt[port]++)= *(sSDI12_Para[port].rx_buf+j++);
 		}
+	} 
+	if(0 == port){
+		*(&SDI12_Data_Ascii[port][0]+SDI12_Data_Ascii_Cnt[port]++) = ',';
 	}
-	*(&SDI12_Data_Ascii[port][0]+SDI12_Data_Ascii_Cnt[port]++) = ',';//?
 }

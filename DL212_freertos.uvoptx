@@ -117,7 +117,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>/</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -151,7 +150,7 @@
           <Type>0</Type>
           <LineNumber>205</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134222982</Address>
+          <Address>134223370</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -161,22 +160,6 @@
           <Filename>.\SRC&amp;INH\stm32l1xx_it.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\DL212_freertos\SRC&amp;INH/stm32l1xx_it.c\205</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>241</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134220436</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\SRC&amp;INH\DL212_easy_mode.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\DL212_freertos\SRC&amp;INH/DL212_easy_mode.c\241</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -218,27 +201,22 @@
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SDI12_Data_Ascii[0]</ItemText>
+          <ItemText>sSDI12_Para</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>sSDI12_Para</ItemText>
+          <ItemText>SDI12_Data_Ascii</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>SDI12_Data_Ascii_Cnt</ItemText>
+          <ItemText>SDI12_Data_Ascii_Cnt,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
-          <WinNumber>2</WinNumber>
-          <ItemText>Value_Ascii</ItemText>
-        </Ww>
-        <Ww>
-          <count>2</count>
           <WinNumber>2</WinNumber>
           <ItemText>Value_Ascii_Len,0x0A</ItemText>
         </Ww>

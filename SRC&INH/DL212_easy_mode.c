@@ -16,7 +16,7 @@ struct CONFIG sDL212_Config;
 
 float Value[8],Batt,PSW_Value,PLL_Value,C1_Value,C2_Value;
 char Value_Ascii[400];
-unsigned int Value_Ascii_Len=0;
+unsigned int Value_Ascii_Len=0; 
 unsigned char Value_Count=0,DL212_DebugMode=VALUE_DISPLAY_ON; 
 unsigned int RTC_IntCount=0,LastScanIntCount=0;
 
@@ -121,13 +121,13 @@ void DL212_EasyMode_Scan(void){
 			Value_Count = 0;
 			Value_Ascii_Len = 0;
  
-		 //Batt = Battery(); 
+		 Batt = Battery(); 
 		 if(0 == sDL212_Config.mode[0]){//HL-1
 				if(1 == sDL212_Config.sw[0]){
 					if(1== sDL212_Config.vx_sw[0]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[0]);
 					}
-				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[0]); 
+				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[0])*sDL212_Config.mul[0]+sDL212_Config.offset[0]; 
 				} 
 			}
 			else{
@@ -135,13 +135,13 @@ void DL212_EasyMode_Scan(void){
 					if(1== sDL212_Config.vx_sw[0]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[0]);
 					}
-				  Value[Value_Count++] = VoltSe(0,sDL212_Config.range[0]); 
+				  Value[Value_Count++] = VoltSe(0,sDL212_Config.range[0])*sDL212_Config.mul[0]+sDL212_Config.offset[0]; 
 				}
 				if(1 == sDL212_Config.sw[1]){//L-1
 					if(1== sDL212_Config.vx_sw[1]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[1]);
 					}
-					Value[Value_Count++] = VoltSe(1,sDL212_Config.range[1]); 
+					Value[Value_Count++] = VoltSe(1,sDL212_Config.range[1])*sDL212_Config.mul[1]+sDL212_Config.offset[1]; 
 				}
 			}
 	   if(0 == sDL212_Config.mode[1]){//HL-2
@@ -149,7 +149,7 @@ void DL212_EasyMode_Scan(void){
 					if(1== sDL212_Config.vx_sw[2]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
 					}
-				  Value[Value_Count++] = VoltDiff(1,sDL212_Config.range[2]); 
+				  Value[Value_Count++] = VoltDiff(1,sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
 				} 
 			}
 			else{
@@ -157,13 +157,13 @@ void DL212_EasyMode_Scan(void){
 					if(1== sDL212_Config.vx_sw[2]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
 					}
-				  Value[Value_Count++] = VoltSe(2,sDL212_Config.range[2]); 
+				  Value[Value_Count++] = VoltSe(2,sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
 				}
 				if(1 == sDL212_Config.sw[3]){//L-2
 					if(1== sDL212_Config.vx_sw[3]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[3]);
 					}
-					Value[Value_Count++] = VoltSe(3,sDL212_Config.range[3]); 
+					Value[Value_Count++] = VoltSe(3,sDL212_Config.range[3])*sDL212_Config.mul[3]+sDL212_Config.offset[3]; 
 				}
 			}
 			if(0 == sDL212_Config.mode[2]){//HL-3
@@ -171,7 +171,7 @@ void DL212_EasyMode_Scan(void){
 					if(1== sDL212_Config.vx_sw[4]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
 					}
-				  Value[Value_Count++] = VoltDiff(2,sDL212_Config.range[4]); 
+				  Value[Value_Count++] = VoltDiff(2,sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
 				} 
 			}
 			else{
@@ -179,23 +179,23 @@ void DL212_EasyMode_Scan(void){
 					if(1== sDL212_Config.vx_sw[4]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
 					}
-				  Value[Value_Count++] = VoltSe(4,sDL212_Config.range[4]); 
+				  Value[Value_Count++] = VoltSe(4,sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
 				}
 				if(1 == sDL212_Config.sw[5]){//L-3
 					if(1== sDL212_Config.vx_sw[5]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[5]);
 					}
-					Value[Value_Count++] = VoltSe(5,sDL212_Config.range[5]); 
+					Value[Value_Count++] = VoltSe(5,sDL212_Config.range[5])*sDL212_Config.mul[5]+sDL212_Config.offset[5]; 
 				}
 			} 
-			if(2 != sDL212_Config.sw[6]){//0:常开  1:测量时打开   2：关闭
+			if(2 != sDL212_Config.sw[6]){//1:常开 0:测量时打开   2：关闭
 			  psSW12_Func->sw(0,1);
 			} 
 			if(sDL212_Config.sw[7]){ 
-				Value[Value_Count++] = PSW_Value;  
+				Value[Value_Count++] = PSW_Value*sDL212_Config.mul[6]+sDL212_Config.offset[6];  
 			}
 			if(sDL212_Config.sw[8]){
-				Value[Value_Count++] = PLL_Value; 
+				Value[Value_Count++] = PLL_Value*sDL212_Config.mul[7]+sDL212_Config.offset[7]; 
 			} 
 			//把除了SDI12传感器之外的数据先处理成ascii
 			Value_Ascii_Len = sprintf(Value_Ascii,"%c%c,",sDL212_Config.device_id[0],sDL212_Config.device_id[1]);  
@@ -213,7 +213,7 @@ void DL212_EasyMode_Scan(void){
 						} 
 					break;
 					case 1:
-						//C1_Value;
+						C1_Value = C1_Value*sDL212_Config.mul[8]+sDL212_Config.offset[8];
 						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",C1_Value);
 					break;
 					default:
@@ -226,24 +226,19 @@ void DL212_EasyMode_Scan(void){
 						SDI12Recorder(1,(unsigned char*)&sDL212_Config.sdi12_cmd[1][0]);
 					  len = strlen((const char*)&SDI12_Data_Ascii[1][0]);
 					  if(len > 1){
-						  strcpy(Value_Ascii+Value_Ascii_Len,&SDI12_Data_Ascii[1][0]); 
-					    Value_Ascii_Len = Value_Ascii_Len+len+1;  
+						  memcpy(Value_Ascii+Value_Ascii_Len,&SDI12_Data_Ascii[1][0],len); 
+					    Value_Ascii_Len = Value_Ascii_Len+len;  
 						} 
 					break;
 					case 1:
-					  //C2_Value;
+					  C2_Value = C2_Value*sDL212_Config.mul[9]+sDL212_Config.offset[9];
 						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",C2_Value);
 					break;
 					default:
 					break;
 			  }	
 			} 
-			if(0 == *(Value_Ascii+Value_Ascii_Len)){
-				Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len-1,"\r\n"); 
-			}
-			else{
-				Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"\r\n"); 
-			} 
+			Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"\r\n");  
 			pack = Value_Ascii_Len/50+1;
 			for(i=0;i<pack-1;i++){
 				USART1_DMA_Send_State = 1; 
@@ -258,7 +253,7 @@ void DL212_EasyMode_Scan(void){
 			DMA_SetCurrDataCounter(DMA1_Channel4,Value_Ascii_Len-i*50); 
 			DMA_Cmd(DMA1_Channel4,ENABLE); 
 			while(USART1_DMA_Send_State && timeout-->0); 
-      if(0 == timeout){__NOP();}
+      if(0 == timeout){__NOP();} 
       //printf("%s",Value_Ascii+Value_Ascii_Len);  
 //#ifdef USE_PCF8563 	
 //	  }
