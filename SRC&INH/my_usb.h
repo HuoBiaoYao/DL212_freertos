@@ -4,13 +4,14 @@
 #include "usb_init.h"
 #include "usb_pwr.h"
  
-#define USB_RX_SIZE   299
-#define USB_TX_SIZE   299
+#define USB_RX_SIZE   400
+#define USB_TX_SIZE   400
 
 extern struct _USB_PARA sUSB_Para; 
 
 struct _USB_PARA{
   unsigned int  rec_len;
+	unsigned int  tx_len;
 	unsigned int  rec_ptr;
   unsigned char packet_sent;
 	unsigned char packet_rec; 

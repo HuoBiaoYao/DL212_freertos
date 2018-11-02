@@ -16,8 +16,8 @@ C1------->RX1---PA3---USART2_RX
 C2<-------TX2---PC12---UART5_TX
 C2------->RX2---PD2----UART5_RX*/
  
-unsigned char USART_DMA_TxBuf[256]; 
-unsigned char USART_DMA_RxBuf[256];  
+unsigned char USART_DMA_TxBuf[ZIGBEE_PACKET_MAX]; 
+unsigned char USART_DMA_RxBuf[ZIGBEE_PACKET_MAX];  
 
 char USART1_DMA_Send_State; 
 unsigned int  USART1_DMA_Rec_Cnt; 
@@ -104,7 +104,7 @@ void DMA1_Channel4_Config(void){
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (unsigned int)(&USART1->DR);
   DMA_InitStructure.DMA_MemoryBaseAddr = (unsigned int)USART_DMA_TxBuf;
   DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-	DMA_InitStructure.DMA_BufferSize = 256;
+	DMA_InitStructure.DMA_BufferSize = ZIGBEE_PACKET_MAX;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
@@ -126,7 +126,7 @@ void DMA1_Channel5_Config(void){
   DMA_InitStructure.DMA_PeripheralBaseAddr = (unsigned int)(&USART1->DR);
 	DMA_InitStructure.DMA_MemoryBaseAddr = (unsigned int)USART_DMA_RxBuf;
 	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
-	DMA_InitStructure.DMA_BufferSize = 256;
+	DMA_InitStructure.DMA_BufferSize = ZIGBEE_PACKET_MAX;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;

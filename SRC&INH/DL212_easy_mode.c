@@ -14,7 +14,7 @@
 
 struct CONFIG sDL212_Config;
 
-float Value[8],Batt,PSW_Value,PLL_Value,C1_Value,C2_Value;
+float Value[10],Batt,PSW_Value,PLL_Value,C1_Value,C2_Value;
 char Value_Ascii[400];
 unsigned int Value_Ascii_Len=0; 
 unsigned char Value_Count=0,DL212_DebugMode=VALUE_DISPLAY_ON; 
@@ -26,9 +26,8 @@ float Battery(void){
 	
 	ADS1248SetChannel(2,0);
 	ADS1248SetChannel(3,1);  
-	bat = ADS1248Convert(0)*1000;
-	bat = bat*251/51;
-	vTaskDelay(1); 
+	bat = ADS1248Convert(0)/1000;
+	bat = bat*251/51; 
 	return bat;
 }
 float VoltDiff(unsigned char chan,unsigned char range){
@@ -118,10 +117,9 @@ void DL212_EasyMode_Scan(void){
 	  //if(0 == RTC_IntCount%sDL212_Config.scan){ 
 			//LastScanIntCount = RTC_IntCount; 
 //#endif
-			Value_Count = 0;
-			Value_Ascii_Len = 0;
- 
+		 Value_Count = Value_Ascii_Len = 0;
 		 Batt = Battery(); 
+		 Value[Value_Count++] = Batt;
 		 if(0 == sDL212_Config.mode[0]){//HL-1
 				if(1 == sDL212_Config.sw[0]){
 					if(1== sDL212_Config.vx_sw[0]){
@@ -200,7 +198,7 @@ void DL212_EasyMode_Scan(void){
 			//把除了SDI12传感器之外的数据先处理成ascii
 			Value_Ascii_Len = sprintf(Value_Ascii,"%c%c,",sDL212_Config.device_id[0],sDL212_Config.device_id[1]);  
 			for(i=0;i<Value_Count;i++){
-			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",Value[i]);
+			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.20f,",Value[i]);
 			}
 			if(1 == sDL212_Config.sw[9]){
 			  switch(sDL212_Config.mode[3]){
@@ -214,7 +212,7 @@ void DL212_EasyMode_Scan(void){
 					break;
 					case 1:
 						C1_Value = C1_Value*sDL212_Config.mul[8]+sDL212_Config.offset[8];
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",C1_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.20f,",C1_Value);
 					break;
 					default:
 					break;
@@ -232,28 +230,44 @@ void DL212_EasyMode_Scan(void){
 					break;
 					case 1:
 					  C2_Value = C2_Value*sDL212_Config.mul[9]+sDL212_Config.offset[9];
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.2f,",C2_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.20f,",C2_Value);
 					break;
 					default:
 					break;
 			  }	
 			} 
-			Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"\r\n");  
-			pack = Value_Ascii_Len/50+1;
-			for(i=0;i<pack-1;i++){
-				USART1_DMA_Send_State = 1; 
-				memcpy(USART_DMA_TxBuf,Value_Ascii+i*50,50);
-				DMA_SetCurrDataCounter(DMA1_Channel4,50); 
+			Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"\r\n");   
+		  /*pack = Value_Ascii_Len/ZIGBEE_PACKET_MAX+1;
+			for(i=0;i<pack-1;i++){ 
+				memcpy(USART_DMA_TxBuf,Value_Ascii+i*ZIGBEE_PACKET_MAX,ZIGBEE_PACKET_MAX);
+				DMA_SetCurrDataCounter(DMA1_Channel4,ZIGBEE_PACKET_MAX); 
 				DMA_Cmd(DMA1_Channel4,ENABLE); 
-				while(USART1_DMA_Send_State && timeout-->0); 
-				if(0 == timeout){__NOP();}
-			}
-			USART1_DMA_Send_State = 1; 
-			memcpy(USART_DMA_TxBuf,Value_Ascii+i*50,Value_Ascii_Len-i*50);
-			DMA_SetCurrDataCounter(DMA1_Channel4,Value_Ascii_Len-i*50); 
+				if(xSemaphoreTake(BinarySemaphore_USART,100) == pdTRUE){ 
+				  __nop();	
+				}
+				else{
+				  __nop();	
+				}
+			} 
+			memcpy(USART_DMA_TxBuf,Value_Ascii+i*ZIGBEE_PACKET_MAX,Value_Ascii_Len-i*ZIGBEE_PACKET_MAX);  
+			DMA_SetCurrDataCounter(DMA1_Channel4,Value_Ascii_Len-i*ZIGBEE_PACKET_MAX); 
 			DMA_Cmd(DMA1_Channel4,ENABLE); 
-			while(USART1_DMA_Send_State && timeout-->0); 
-      if(0 == timeout){__NOP();} 
+			数据较多时，必须分包，目前设置的是250个字节，不分包*/
+			memcpy(USART_DMA_TxBuf,Value_Ascii ,Value_Ascii_Len ); 
+			DMA_SetCurrDataCounter(DMA1_Channel4,Value_Ascii_Len ); 
+			DMA_Cmd(DMA1_Channel4,ENABLE);
+			if(xSemaphoreTake(BinarySemaphore_USART,200) == pdTRUE){ 
+			  sUSB_Para.tx_len = Value_Ascii_Len;
+			  memcpy(sUSB_Para.tx_buf,Value_Ascii,Value_Ascii_Len); 
+			  memset(Value_Ascii,0,400); 
+			}
+			else{
+				len = sprintf((char*)sUSB_Para.tx_buf,"zigbee串口发送数据失败\r\n"); 
+			  memcpy(sUSB_Para.tx_buf+len,Value_Ascii,Value_Ascii_Len); 
+				sUSB_Para.tx_len = Value_Ascii_Len+len;
+			  memset(Value_Ascii,0,400); 	
+			}
+			
       //printf("%s",Value_Ascii+Value_Ascii_Len);  
 //#ifdef USE_PCF8563 	
 //	  }
@@ -381,20 +395,24 @@ void DL212_Config_Utility(void){
 			p = (char *)&sDL212_Config;		
 			USB_Send((unsigned char*)&sDL212_Config,sizeof(sDL212_Config));
 		}
-		else if(0 == strncmp("DL212 value display on",(const char*)(sUSB_Para.rx_buf),22)){  
-		  DL212_DebugMode = VALUE_DISPLAY_ON;	
+		else if(0 == strncmp("DL212 value display on",(const char*)(sUSB_Para.rx_buf),22)){ 
+			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;		
+		  DL212_DebugMode = VALUE_DISPLAY_ON;	 
 		}
-		else if(0 == strncmp("DL212 value display off",(const char*)(sUSB_Para.rx_buf),23)){  
-		  DL212_DebugMode = VALUE_DISPLAY_OFF;	
+		else if(0 == strncmp("DL212 value display off",(const char*)(sUSB_Para.rx_buf),23)){
+			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;		
+		  DL212_DebugMode = VALUE_DISPLAY_OFF;	 
 		}
 		else if(0 == strncmp("DL212 c1 port sdi12 transparent",(const char*)(sUSB_Para.rx_buf),32)){  
-			DL212_DebugMode = SDI12_0_TRANSPARENT;
+			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
+			DL212_DebugMode = SDI12_0_TRANSPARENT; 
 		}
 		else if(0 == strncmp("DL212 c2 port sdi12 transparent",(const char*)(sUSB_Para.rx_buf),32)){  
-			DL212_DebugMode = SDI12_1_TRANSPARENT;
-		}
-		else if(0 == strncmp("DL212 os version",(const char*)(sUSB_Para.rx_buf),16)){
-		  i=sprintf(message,"v1.0.0\r\n");USB_Send((unsigned char *)message,i);		 
+			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
+			DL212_DebugMode = SDI12_1_TRANSPARENT; 
+		} 
+		else{
+		  __nop();
 		}
 	} 
 }

@@ -25,6 +25,7 @@ TaskHandle_t Task3_Handler;
 QueueHandle_t xQueue;
 SemaphoreHandle_t BinarySemaphore_MB,\
                   BinarySemaphore_USB,\
+									BinarySemaphore_USART,\
 									BinarySemaphore_SDI12_FirstByte,\
                   BinarySemaphore_SDI12_CR_LF;									
 SemaphoreHandle_t xSemaphore; 
@@ -48,7 +49,7 @@ int main(void){
 	IIC_PCF_GPIO_Init(); 
 	psSW12_Func->init();//SW12控制口初始化
 	ADS1248_Init(); 
-	DL212_EasyMode_Init(); 
+	DL212_EasyMode_Init();  
 	//delay_ms(3000); 
   //DBGMCU_Config(DBGMCU_SLEEP,ENABLE);
 	//创建开始任务
@@ -69,10 +70,11 @@ void Task_Start(void *pvParameters){
   xQueue = xQueueCreate(2,sizeof(char));
 	BinarySemaphore_MB = xSemaphoreCreateBinary(); 
   BinarySemaphore_USB = xSemaphoreCreateBinary();
+	BinarySemaphore_USART = xSemaphoreCreateBinary();
 	BinarySemaphore_SDI12_FirstByte = xSemaphoreCreateBinary(); 
 	BinarySemaphore_SDI12_CR_LF = xSemaphoreCreateBinary(); 
  	xSemaphore = xSemaphoreCreateMutex(); 
-  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL || xSemaphore==NULL){
+  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || BinarySemaphore_USART==NULL || BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL || xSemaphore==NULL){
 	  delay_ms(10000);  
 	} 
 	//SDI12_C1_SEND_DISABLE();
@@ -104,21 +106,32 @@ void Task1(void *pvParameters){
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000);  
 	 
 	xLastWakeTime = xTaskGetTickCount();
-  while(1){
-    //vTaskDelayUntil(&xLastWakeTime,xPeriod); 
+	LED_SCAN_ON();
+	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(500));LED_SCAN_OFF(); 
+	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_ON(); 
+	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_OFF(); 
+	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_ON(); 
+	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_OFF(); 
+	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_ON(); 
+	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_OFF(); 
+  while(1){  
+		if(SDI12_0_TRANSPARENT!=DL212_DebugMode && SDI12_1_TRANSPARENT!=DL212_DebugMode){
+			LED_SCAN_ON(); 
+      DL212_EasyMode_Scan(); 
+		}
+		Scan_Count++; 
+		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(30));
+    LED_SCAN_OFF();	
 		#ifndef USE_PCF8563
 		if(sDL212_Config.scan){
-		  vTaskDelayUntil(&xLastWakeTime,sDL212_Config.scan);
+		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan));
 		}
 		else{
-		  vTaskDelayUntil(&xLastWakeTime,1000);
+		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1000));
 		}
 		#else
-		vTaskDelayUntil(&xLastWakeTime,100);
-		#endif
-    DL212_EasyMode_Scan(); 
-		Scan_Count++; 
-		vTaskDelay(30); 
+		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));
+		#endif		
 		if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
 			vTaskSuspend(Task1_Handler); 
 		}
@@ -135,23 +148,25 @@ void Task2(void *pvParameters){
 				CDC_Receive_DATA(); 
 				if(sUSB_Para.packet_rec){				
 					DL212_Config_Utility();
-					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len); 
-					sUSB_Para.packet_rec = sUSB_Para.rec_len  = 0;
+					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len);  
+					switch(DL212_DebugMode){
+						case SDI12_0_TRANSPARENT:
+							SDI12_Transparent(0);
+						break;
+						case SDI12_1_TRANSPARENT:
+							SDI12_Transparent(1);
+						break;
+						default:
+			      break; 
+					  sUSB_Para.packet_rec = sUSB_Para.rec_len  = 0;	
+					}
 				} 
-				switch(DL212_DebugMode){
-				  case SDI12_0_TRANSPARENT:
-					  SDI12_Transparent(0);
-				  break;
-				  case SDI12_1_TRANSPARENT:
-				  	SDI12_Transparent(1);
-				  break;
-				  default:
-			    break; 
-			  }
 				if(Scan_Count > count){
 				  count = Scan_Count;
 					if(VALUE_DISPLAY_ON == DL212_DebugMode){
-						USB_Send((unsigned char*)Value_Ascii,Value_Ascii_Len); 
+						USB_Send(sUSB_Para.tx_buf,sUSB_Para.tx_len); 
+						memset(sUSB_Para.tx_buf,0,400);
+						sUSB_Para.tx_len = 0;
 					}
 				}				
 			}
@@ -215,7 +230,7 @@ void UserGpio_Config(void){
 	
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC,ENABLE); 
 	
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_7;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;

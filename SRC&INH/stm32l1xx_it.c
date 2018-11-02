@@ -35,6 +35,7 @@ void DMA1_Channel4_IRQHandler(void){
 	
   DMA_ClearFlag(DMA1_FLAG_TC4);
   DMA_Cmd(DMA1_Channel4,DISABLE);
+	xSemaphoreGiveFromISR(BinarySemaphore_USART,&xHigherPriorityTaskWoken);
 	USART1_DMA_Send_State = 0;
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }

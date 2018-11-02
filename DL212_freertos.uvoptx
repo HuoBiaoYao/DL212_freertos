@@ -117,6 +117,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
+          <Name>\9g \&lt;g ?Dt</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -148,9 +149,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>205</LineNumber>
+          <LineNumber>206</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134223370</Address>
+          <Address>134223566</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -159,7 +160,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\SRC&amp;INH\stm32l1xx_it.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\DL212_freertos\SRC&amp;INH/stm32l1xx_it.c\205</Expression>
+          <Expression>\\DL212_freertos\SRC&amp;INH/stm32l1xx_it.c\206</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -207,6 +208,16 @@
           <count>8</count>
           <WinNumber>1</WinNumber>
           <ItemText>SDI12_Data_Ascii</ItemText>
+        </Ww>
+        <Ww>
+          <count>9</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>DL212_DebugMode</ItemText>
+        </Ww>
+        <Ww>
+          <count>10</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>eSDI12_BUS</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>

@@ -2,6 +2,10 @@
 #define __HW_SERIAL_H  
 #include "stm32l1xx_usart.h"
 
+//DRF1609H zigbee协议数据帧最大96字节，数据包最大269
+#define ZIGBEE_PACKET_MAX  250
+#define ZIGBEE_FRAME_MAX   90
+
 extern char USART1_DMA_Send_State;
 extern unsigned int USART1_DMA_Rec_Cnt;
 extern unsigned char USART_DMA_TxBuf[];

@@ -30,8 +30,7 @@ struct _SDI12_FUNC *psSDI12_Func=&sSDI12_Func;
 
 void SDI12_Init(unsigned char port){
 	GPIO_InitTypeDef GPIO_InitStructure;
-	
-	eC_PORT_STATE[port] = C_SDI12_IN_USE;
+ 
   switch(port){
 	  case 0:
 			GPIO_InitStructure.GPIO_Pin = C1_CTRL_PIN;
@@ -71,9 +70,6 @@ void SDI12_Init(unsigned char port){
 } 
 
 __SDI12_RSL SDI12_Read(unsigned char port,unsigned char *dst,unsigned char *src){
-	if(C_SDI12_IN_USE != eC_PORT_STATE[port]){
-	  return SDI12_NOT_IN_USE;
-	}
   if(SDI12_REICEIVE == eSDI12_BUS[port]){
 	  *(dst+sSDI12_Para[port].rx_ptr++) = (*src&0x7F);
 		if(sSDI12_Para[port].rx_ptr >= SDI12_RX_SIZE){
@@ -86,10 +82,7 @@ __SDI12_RSL SDI12_Read(unsigned char port,unsigned char *dst,unsigned char *src)
 
 __SDI12_RSL SDI12_Read_FromISR(unsigned char port,unsigned char *dst,unsigned char *src){ 
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	
-	if(C_SDI12_IN_USE != eC_PORT_STATE[port]){
-	  return SDI12_NOT_IN_USE;
-	}
+ 
 	if(SDI12_REICEIVE == eSDI12_BUS[port]){
 		*(dst+sSDI12_Para[port].rx_ptr++) = (*src&0x7F);
 		if(1 == sSDI12_Para[port].rx_ptr){
@@ -110,10 +103,7 @@ __SDI12_RSL SDI12_Read_FromISR(unsigned char port,unsigned char *dst,unsigned ch
 			
 __SDI12_RSL SDI12_Send(unsigned char port,unsigned char *string,unsigned int len){
 	unsigned int i=0;
-	
-	if(C_SDI12_IN_USE != eC_PORT_STATE[port]){
-	  return SDI12_NOT_IN_USE;
-	}
+ 
 	eSDI12_BUS[port] = SDI12_SEND;
 	psSDI12_Func->send_enable(port);
 	switch(port){
@@ -127,7 +117,7 @@ __SDI12_RSL SDI12_Send(unsigned char port,unsigned char *string,unsigned int len
 		break;
 	}
 	psSDI12_Func->bus_high(port);
-	delay_ms(13);
+	delay_us(13000);
 	psSDI12_Func->bus_low(port);
 	switch(port){
 	  case 0:
@@ -139,7 +129,7 @@ __SDI12_RSL SDI12_Send(unsigned char port,unsigned char *string,unsigned int len
 		default: 
 		break;
 	}
-	delay_ms(9); 
+	delay_us(9000); 
 	while(i < len){
 		psSDI12_Func->sendbyte(port,string+i),i++;
 	} 
@@ -151,10 +141,7 @@ __SDI12_RSL SDI12_Send(unsigned char port,unsigned char *string,unsigned int len
 
 __SDI12_RSL SDI12_SendByte(unsigned char port,unsigned char *byte){
 	unsigned char i,even=0,buf;
-	 
-	if(C_SDI12_IN_USE != eC_PORT_STATE[port]){
-	  return SDI12_NOT_IN_USE;
-	}
+ 
 	buf = *byte;
 	psSDI12_Func->start(port);
 	delay_us(DElAY_Baud1200);
@@ -263,65 +250,29 @@ void SDI12_Stop(unsigned char port){
 }
 
 __SDI12_RSL SDI12_Transparent(unsigned char port){
-	unsigned int i,timeout=0;
-	static  int reccnt=0;
-	
-	if(C_SDI12_IN_USE != eC_PORT_STATE[port]){
-	  return SDI12_NOT_IN_USE;
+	if(0 == sUSB_Para.packet_rec){
+		return 1; 
 	}
-  if(bDeviceState == CONFIGURED){
-    CDC_Receive_DATA();
-    if(sUSB_Para.packet_rec){
-      sUSB_Para.packet_rec = 0;
-      memcpy(sSDI12_Para[port].tx_buf+sSDI12_Para[port].tx_ptr,sUSB_Para.rx_buf,sUSB_Para.rec_len);  
-      sSDI12_Para[port].tx_ptr = sSDI12_Para[port].tx_ptr>=SDI12_TX_SIZE?0:(sSDI12_Para[port].tx_ptr+sUSB_Para.rec_len); 
-      sUSB_Para.rec_len = sUSB_Para.rec_ptr = 0;
-			reccnt++;
-    }
-	} 
-	if(sSDI12_Para[port].tx_buf[0]=='?' || 
-		(sSDI12_Para[port].tx_buf[0]>=0x30 && sSDI12_Para[port].tx_buf[0]<=0x39) ||
-		(sSDI12_Para[port].tx_buf[0]>=0x41 && sSDI12_Para[port].tx_buf[0]<=0x5A) ||  
-    (sSDI12_Para[port].tx_buf[0]>=0x61 && sSDI12_Para[port].tx_buf[0]<=0x7A)){
-	  if(sSDI12_Para[port].tx_ptr >= 2){
-	    for(i=0;i<sSDI12_Para[port].tx_ptr;i++){
-	      if('!' == sSDI12_Para[port].tx_buf[i-1] && '\r' == sSDI12_Para[port].tx_buf[i]){
-	        sSDI12_Para[port].tx_buf[i] = 0;
-	        if(SDI12_IDLE != eSDI12_BUS[port]){
-	          return SDI12_OK;
-	        }
-	        eSDI12_BUS[port] = SDI12_BUSY;
-					psSDI12_Func->send(port,sSDI12_Para[port].tx_buf,i);
-	        delay_ms(8);
-	        eSDI12_BUS[port] = SDI12_REICEIVE;
-	        while(timeout <= 810){
-	          if(0x0D==*(sSDI12_Para[port].rx_buf+sSDI12_Para[port].rx_ptr-2) && 0x0A==*(sSDI12_Para[port].rx_buf+sSDI12_Para[port].rx_ptr-1)){
-	            i = sSDI12_Para[port].rx_ptr;
-	            sSDI12_Para[port].rx_ptr = 0;
-	            break;
-	          }
-	          delay_ms(1);
-	          timeout++;
-	        }
-	        sSDI12_Para[port].rx_ptr = 0;
-	        eSDI12_BUS[port] = SDI12_IDLE;
-	        if(i >= 2){
-	          if(0x0D==*(sSDI12_Para[port].rx_buf+i-2) && 0x0A==*(sSDI12_Para[port].rx_buf+i-1)){
-	            USB_Send(sSDI12_Para[port].rx_buf,i);
-	          }
-	        }
-	        i = 0;
-	        break;
-	      }
-      } 	
-	  }
-	  sSDI12_Para[port].tx_buf[0] = sSDI12_Para[port].tx_ptr = 0;	 
-	}
-  else{
-		sSDI12_Para[port].tx_buf[0] = 0;
-		sSDI12_Para[port].tx_ptr = 0;
-  }
-	
+	memcpy(sSDI12_Para[port].tx_buf ,sUSB_Para.rx_buf,sUSB_Para.rec_len);  
+	sSDI12_Para[port].tx_ptr = sUSB_Para.rec_len;
+  sUSB_Para.rec_len = sUSB_Para.rec_ptr = 0;
+	if(sSDI12_Para[port].tx_buf[0]=='?' || isalnum(sSDI12_Para[port].tx_buf[0])){ 
+		if('!' == sSDI12_Para[port].tx_buf[sSDI12_Para[port].tx_ptr-1]){ 
+	    eSDI12_BUS[port] = SDI12_BUSY;
+			sSDI12_Para[port].rx_buf[0] = sSDI12_Para[port].rx_ptr = 0;
+			psSDI12_Func->send(port,sSDI12_Para[port].tx_buf,sSDI12_Para[port].tx_ptr);
+	    delay_us(8000);
+	    eSDI12_BUS[port] = SDI12_REICEIVE;
+	    if(xSemaphoreTake(BinarySemaphore_SDI12_FirstByte,80) == pdTRUE){
+				if(xSemaphoreTake(BinarySemaphore_SDI12_CR_LF,700) == pdTRUE){
+			    USB_Send(sSDI12_Para[port].rx_buf,sSDI12_Para[port].rx_ptr); 
+				}
+			}  
+		}
+  } 
+	eSDI12_BUS[port] = SDI12_IDLE;	
+  sSDI12_Para[port].tx_buf[0] = sSDI12_Para[port].tx_ptr =  sSDI12_Para[port].rx_buf[0] = sSDI12_Para[port].rx_ptr = 0;	 
+ 
 	return SDI12_OK;
 }
  
@@ -339,7 +290,7 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
 		  while(retry--){
 	  	  eSDI12_BUS[port] = SDI12_BUSY; 
 		    psSDI12_Func->send(port,sdicmd+j,i-j+1);  
-				delay_ms(8);
+				delay_us(8000);
 		    eSDI12_BUS[port] = SDI12_REICEIVE; 			
 				
 						if(xSemaphoreTake(BinarySemaphore_SDI12_FirstByte,80) == pdTRUE){
@@ -379,6 +330,7 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
     	}
 			j = i+1;
     }
+		vTaskDelay(30);
 		i++;
 	}
 	SDI12_Data_Ascii_Cnt[port] = 0;

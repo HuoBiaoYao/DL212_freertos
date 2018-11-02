@@ -5,6 +5,9 @@
 #include "task.h"
 #include "timers.h"
 
+#define LED_SCAN_ON()   GPIOC->BSRRL = GPIO_Pin_6; 
+#define LED_SCAN_OFF()  GPIOC->BSRRH = GPIO_Pin_6; 
+
 extern TaskHandle_t Task_Start_Handler; 
 extern TaskHandle_t Task1_Handler; 
 extern TaskHandle_t Task2_Handler; 
@@ -13,6 +16,7 @@ extern TaskHandle_t Task3_Handler;
 extern QueueHandle_t xQueue;
 extern SemaphoreHandle_t BinarySemaphore_MB,\
 	                       BinarySemaphore_USB,\
+												 BinarySemaphore_USART,\
                          BinarySemaphore_SDI12_FirstByte,\
 												 BinarySemaphore_SDI12_CR_LF; 
 extern SemaphoreHandle_t xSemaphore;
