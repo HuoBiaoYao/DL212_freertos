@@ -24,26 +24,31 @@ unsigned int RTC_IntCount=0,LastScanIntCount=0;
 float Battery(void){
 	float bat;
 	
+	ADS1248SetGain(0);
 	ADS1248SetChannel(2,0);
 	ADS1248SetChannel(3,1);  
 	bat = ADS1248Convert(0)/1000;
 	bat = bat*251/51; 
 	return bat;
 }
-float VoltDiff(unsigned char chan,unsigned char range){
-	float volt;
+float VoltDiff(unsigned char chan,unsigned char filter,unsigned char revdiff,unsigned char range){
+	float volt,volt_rev,gain;
  
 	switch(range){
 	  case 0:
 			ADS1248SetGain(0);
+			gain = 1;
 		break;
 		case 1:
 			ADS1248SetGain(3);
+			gain = 8;
 		break;
 		case 2:
 			ADS1248SetGain(5);
+			gain = 32;
 		break;
 		default:
+			gain=1;
 		break;
 	}
 	switch(chan){
@@ -59,26 +64,64 @@ float VoltDiff(unsigned char chan,unsigned char range){
 			ADS1248SetChannel(6,0);
 			ADS1248SetChannel(7,1); 
 		break;
-	} 
-  volt = ADS1248Convert(range); 
+	}
+	delay_us(500);
+	switch(filter){
+	  case 0:
+			ADS1248SetDataRate(2);
+		break;
+		case 1:
+			ADS1248SetDataRate(5);
+		break;
+		case 2:
+			ADS1248SetDataRate(9);
+		break;
+		default:
+			ADS1248SetDataRate(9);
+		break;
+	}
+	volt = ADS1248Convert(range)/gain; 
+	if(0 == revdiff){
+		switch(chan){
+			case 0: 
+				ADS1248SetChannel(0,1);
+				ADS1248SetChannel(1,0);   
+			break;
+			case 1: 
+				ADS1248SetChannel(4,1);
+				ADS1248SetChannel(5,0);
+			break;
+			case 2: 
+				ADS1248SetChannel(6,1);
+				ADS1248SetChannel(7,0); 
+			break;
+		}
+	}
+	delay_us(500);
+  volt_rev = ADS1248Convert(range)/gain; 
+	volt = (volt-volt_rev)/2;
 	
 	return volt;
 }
 
-float VoltSe(unsigned char chan,unsigned char range){
-	float volt;
+float VoltSe(unsigned char chan,unsigned char filter,unsigned char range){
+	float volt,gain; 
  
 	switch(range){  
 	  case 0:
 			ADS1248SetGain(0);
+			gain = 1;
 		break;
 		case 1:
 			ADS1248SetGain(3);
+		  gain = 8;
 		break;
 		case 2:
 			ADS1248SetGain(5);
+		  gain = 32;
 		break;
 		default:
+			gain=1;
 		break;
 	}
 	ADS1248SetChannel(3,1);
@@ -104,7 +147,22 @@ float VoltSe(unsigned char chan,unsigned char range){
 		default:
 		break;
 	}
-  volt = ADS1248Convert(range); 
+	delay_us(500);
+	switch(filter){
+	  case 0:
+			ADS1248SetDataRate(2);
+		break;
+		case 1:
+			ADS1248SetDataRate(5);
+		break;
+		case 2:
+			ADS1248SetDataRate(9);
+		break;
+		default:
+			ADS1248SetDataRate(9);
+		break;
+	}
+  volt = ADS1248Convert(range)/gain; 
 	
 	return volt;
 } 
@@ -124,66 +182,75 @@ void DL212_EasyMode_Scan(void){
 				if(1 == sDL212_Config.sw[0]){
 					if(1== sDL212_Config.vx_sw[0]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[0]);
+						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.range[0])*sDL212_Config.mul[0]+sDL212_Config.offset[0]; 
+				  Value[Value_Count++] = VoltDiff(0,sDL212_Config.filter[0],sDL212_Config.revdiff[0],sDL212_Config.range[0])*sDL212_Config.mul[0]+sDL212_Config.offset[0]; 
 				} 
 			}
 			else{
 			  if(1 == sDL212_Config.sw[0]){//H-1
 					if(1== sDL212_Config.vx_sw[0]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[0]);
+						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltSe(0,sDL212_Config.range[0])*sDL212_Config.mul[0]+sDL212_Config.offset[0]; 
+				  Value[Value_Count++] = VoltSe(0,sDL212_Config.filter[0],sDL212_Config.range[0])*sDL212_Config.mul[0]+sDL212_Config.offset[0]; 
 				}
 				if(1 == sDL212_Config.sw[1]){//L-1
 					if(1== sDL212_Config.vx_sw[1]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[1]);
+						delay_us(20);
 					}
-					Value[Value_Count++] = VoltSe(1,sDL212_Config.range[1])*sDL212_Config.mul[1]+sDL212_Config.offset[1]; 
+					Value[Value_Count++] = VoltSe(1,sDL212_Config.filter[1],sDL212_Config.range[1])*sDL212_Config.mul[1]+sDL212_Config.offset[1]; 
 				}
 			}
 	   if(0 == sDL212_Config.mode[1]){//HL-2
 				if(1 == sDL212_Config.sw[2]){
 					if(1== sDL212_Config.vx_sw[2]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
+						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltDiff(1,sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
+				  Value[Value_Count++] = VoltDiff(1,sDL212_Config.filter[1],sDL212_Config.revdiff[1],sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
 				} 
 			}
 			else{
 			  if(1 == sDL212_Config.sw[2]){//H-2
 					if(1== sDL212_Config.vx_sw[2]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
+						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltSe(2,sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
+				  Value[Value_Count++] = VoltSe(2,sDL212_Config.filter[2],sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
 				}
 				if(1 == sDL212_Config.sw[3]){//L-2
 					if(1== sDL212_Config.vx_sw[3]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[3]);
+						delay_us(20);
 					}
-					Value[Value_Count++] = VoltSe(3,sDL212_Config.range[3])*sDL212_Config.mul[3]+sDL212_Config.offset[3]; 
+					Value[Value_Count++] = VoltSe(3,sDL212_Config.filter[3],sDL212_Config.range[3])*sDL212_Config.mul[3]+sDL212_Config.offset[3]; 
 				}
 			}
 			if(0 == sDL212_Config.mode[2]){//HL-3
 				if(1 == sDL212_Config.sw[4]){
 					if(1== sDL212_Config.vx_sw[4]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
+						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltDiff(2,sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
+				  Value[Value_Count++] = VoltDiff(2,sDL212_Config.filter[2],sDL212_Config.revdiff[2],sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
 				} 
 			}
 			else{
 			  if(1 == sDL212_Config.sw[4]){//H-3
 					if(1== sDL212_Config.vx_sw[4]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
+						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltSe(4,sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
+				  Value[Value_Count++] = VoltSe(4,sDL212_Config.filter[4],sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
 				}
 				if(1 == sDL212_Config.sw[5]){//L-3
 					if(1== sDL212_Config.vx_sw[5]){
 					  MCP4725_SetValue(sDL212_Config.vx_value[5]);
+						delay_us(20);
 					}
-					Value[Value_Count++] = VoltSe(5,sDL212_Config.range[5])*sDL212_Config.mul[5]+sDL212_Config.offset[5]; 
+					Value[Value_Count++] = VoltSe(5,sDL212_Config.filter[5],sDL212_Config.range[5])*sDL212_Config.mul[5]+sDL212_Config.offset[5]; 
 				}
 			} 
 			if(2 != sDL212_Config.sw[6]){//1:常开 0:测量时打开   2：关闭
@@ -198,7 +265,7 @@ void DL212_EasyMode_Scan(void){
 			//把除了SDI12传感器之外的数据先处理成ascii
 			Value_Ascii_Len = sprintf(Value_Ascii,"%c%c,",sDL212_Config.device_id[0],sDL212_Config.device_id[1]);  
 			for(i=0;i<Value_Count;i++){
-			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.20f,",Value[i]);
+			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.4f,",Value[i]);
 			}
 			if(1 == sDL212_Config.sw[9]){
 			  switch(sDL212_Config.mode[3]){
@@ -212,7 +279,7 @@ void DL212_EasyMode_Scan(void){
 					break;
 					case 1:
 						C1_Value = C1_Value*sDL212_Config.mul[8]+sDL212_Config.offset[8];
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.20f,",C1_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.4f,",C1_Value);
 					break;
 					default:
 					break;
@@ -230,7 +297,7 @@ void DL212_EasyMode_Scan(void){
 					break;
 					case 1:
 					  C2_Value = C2_Value*sDL212_Config.mul[9]+sDL212_Config.offset[9];
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.20f,",C2_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.4f,",C2_Value);
 					break;
 					default:
 					break;
@@ -299,26 +366,26 @@ void DL212_EasyMode_Init(void){
 	if(sDL212_Config.sw[7]){
 		TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
 		if(sDL212_Config.mea_time[0]){
-			TIM10_Init(sDL212_Config.mea_time[0]);
+			TIM6_Init(sDL212_Config.mea_time[0]);
 		}
 		else{
-			TIM10_Init(1000);
+			TIM6_Init(1000);
 		} 
 	}
 	else{
-		TIM_Cmd(TIM10, DISABLE);
+		TIM_Cmd(TIM6, DISABLE);
 	}
 	if(sDL212_Config.sw[8]){
 		TIM5_TI1FP1_Init();//PLL---PA0(TIM5_CH1) 
 		if(sDL212_Config.mea_time[1]){
-			TIM6_Init(sDL212_Config.mea_time[1]);
+			TIM10_Init(sDL212_Config.mea_time[1]);
 		}
 		else{
-			TIM6_Init(1000);
+			TIM10_Init(1000);
 		}  
 	}	
 	else{
-	  TIM_Cmd(TIM6, DISABLE);
+	  TIM_Cmd(TIM10, DISABLE);
 	}
 	switch(sDL212_Config.mode[3]){
 	  case 0:

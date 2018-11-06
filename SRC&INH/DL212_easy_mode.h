@@ -10,6 +10,8 @@ struct CONFIG{
   char device_id[3];//包含结束符
   unsigned int scan;	
   unsigned char mode[5];//差分1，差分2，差分3，DI，D2
+	unsigned char revdiff[3];
+  unsigned char filter[6];
   unsigned char sw[11];
   unsigned char range[6];
   unsigned char vx_sw[6];
@@ -34,8 +36,8 @@ extern unsigned int Value_Ascii_Len;
 extern unsigned int RTC_IntCount;
 
 float Battery(void);
-float VoltDiff(unsigned char chan,unsigned char range);
-float VoltSe(unsigned char chan,unsigned char range);
+float VoltDiff(unsigned char chan,unsigned char filter,unsigned char revdiff,unsigned char range);
+float VoltSe(unsigned char chan,unsigned char filter,unsigned char range);
 
 void DL212_EasyMode_Scan(void);  
 void DL212_EasyMode_Init(void);

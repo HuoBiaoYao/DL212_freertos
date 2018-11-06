@@ -124,13 +124,13 @@ void Task1(void *pvParameters){
     LED_SCAN_OFF();	
 		#ifndef USE_PCF8563
 		if(sDL212_Config.scan){
-		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan));
+		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan)-20);
 		}
 		else{
-		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1000));
+		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(980));
 		}
 		#else
-		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));
+		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(980));
 		#endif		
 		if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
 			vTaskSuspend(Task1_Handler); 

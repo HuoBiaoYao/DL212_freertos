@@ -28,10 +28,11 @@ float ADS1248Convert(unsigned char pga){
 
 int ADS1248ReadDATA(void){ 
 	static int data;
- 
+  
 	ADS1248_ENABLE();
   ADS1248_START_H();
-  __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	ADS1248_SPI_SendByte(ADS1248_CMD_NOP);
+  //__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
 	ADS1248_START_L(); 
 	while ( ( IS_ADS1248_READY() ) );  
 	ADS1248_SPI_SendByte(ADS1248_CMD_RDATA); 
@@ -52,7 +53,7 @@ void ADS1248_Init(void){
 	Delay10ms(); Delay10ms();
 	ADS1248_SPI_Init(); 	
 	ADS1248_GPIO_Init(); 
-	ADS1248SetDataRate(9); 
+	ADS1248SetDataRate(5); 
 	ADS1248SetVoltageReference(1); 
 }
 
