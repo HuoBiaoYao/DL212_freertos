@@ -46,6 +46,7 @@
 #define __no_init        __attribute__((zero_init)) 
  
 void SPI_FRAM_Init(void);
+void SPI_FRAM_SPI_Init(void);
 void SPI_FRAM_Write_Enable(void);
 void SPI_FRAM_Write_Disable(void);
 void SPI_FRAM_WriteStatusReg(unsigned char command);

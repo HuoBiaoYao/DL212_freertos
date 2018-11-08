@@ -24,19 +24,37 @@ unsigned int RTC_IntCount=0,LastScanIntCount=0;
 float Battery(void){
 	float bat;
 	
+	ADS1248SetDataRate(9);
 	ADS1248SetGain(0);
 	ADS1248SetChannel(2,0);
-	ADS1248SetChannel(3,1);  
+	ADS1248SetChannel(3,1); 
+	delay_us(500);	
 	bat = ADS1248Convert(0)/1000;
 	bat = bat*251/51; 
 	return bat;
 }
 float VoltDiff(unsigned char chan,unsigned char filter,unsigned char revdiff,unsigned char range){
-	float volt,volt_rev,gain;
- 
+  float volt,volt_rev,gain,sys_gain=1,offset=0;
+	
+	switch(filter){
+	  case 0:
+			ADS1248SetDataRate(2);
+		break;
+		case 1:
+			ADS1248SetDataRate(5); 
+		break;
+		case 2:
+			ADS1248SetDataRate(9);
+		break;
+		default:
+			ADS1248SetDataRate(9); 
+		break;
+	}
 	switch(range){
 	  case 0:
 			ADS1248SetGain(0);
+		  sys_gain=0.99949;
+		  offset=-0.2;
 			gain = 1;
 		break;
 		case 1:
@@ -64,23 +82,9 @@ float VoltDiff(unsigned char chan,unsigned char filter,unsigned char revdiff,uns
 			ADS1248SetChannel(6,0);
 			ADS1248SetChannel(7,1); 
 		break;
-	}
+	} 
 	delay_us(500);
-	switch(filter){
-	  case 0:
-			ADS1248SetDataRate(2);
-		break;
-		case 1:
-			ADS1248SetDataRate(5);
-		break;
-		case 2:
-			ADS1248SetDataRate(9);
-		break;
-		default:
-			ADS1248SetDataRate(9);
-		break;
-	}
-	volt = ADS1248Convert(range)/gain; 
+	volt = ADS1248Convert(range)/gain*sys_gain+offset; 
 	if(0 == revdiff){
 		switch(chan){
 			case 0: 
@@ -96,20 +100,36 @@ float VoltDiff(unsigned char chan,unsigned char filter,unsigned char revdiff,uns
 				ADS1248SetChannel(7,0); 
 			break;
 		}
-	}
-	delay_us(500);
-  volt_rev = ADS1248Convert(range)/gain; 
-	volt = (volt-volt_rev)/2;
+		delay_us(500);
+    volt_rev = ADS1248Convert(range)/gain*sys_gain+offset; 
+	  volt = (volt-volt_rev)/2;
+	} 
 	
 	return volt;
 }
 
 float VoltSe(unsigned char chan,unsigned char filter,unsigned char range){
-	float volt,gain; 
+	float volt,gain,sys_gain=1,offset=0;
  
+	switch(filter){
+	  case 0:
+			ADS1248SetDataRate(2);
+		break;
+		case 1:
+			ADS1248SetDataRate(5); 
+		break;
+		case 2:
+			ADS1248SetDataRate(9); 
+		break;
+		default:
+			ADS1248SetDataRate(9); 
+		break;
+	}
 	switch(range){  
 	  case 0:
 			ADS1248SetGain(0);
+		  sys_gain=0.99949;
+		  offset=-0.2;
 			gain = 1;
 		break;
 		case 1:
@@ -147,22 +167,8 @@ float VoltSe(unsigned char chan,unsigned char filter,unsigned char range){
 		default:
 		break;
 	}
-	delay_us(500);
-	switch(filter){
-	  case 0:
-			ADS1248SetDataRate(2);
-		break;
-		case 1:
-			ADS1248SetDataRate(5);
-		break;
-		case 2:
-			ADS1248SetDataRate(9);
-		break;
-		default:
-			ADS1248SetDataRate(9);
-		break;
-	}
-  volt = ADS1248Convert(range)/gain; 
+	delay_us(500); 
+  volt = ADS1248Convert(range)/gain*sys_gain+offset; 
 	
 	return volt;
 } 
@@ -209,7 +215,7 @@ void DL212_EasyMode_Scan(void){
 					  MCP4725_SetValue(sDL212_Config.vx_value[2]);
 						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltDiff(1,sDL212_Config.filter[1],sDL212_Config.revdiff[1],sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
+				  Value[Value_Count++] = VoltDiff(1,sDL212_Config.filter[2],sDL212_Config.revdiff[1],sDL212_Config.range[2])*sDL212_Config.mul[2]+sDL212_Config.offset[2]; 
 				} 
 			}
 			else{
@@ -234,7 +240,7 @@ void DL212_EasyMode_Scan(void){
 					  MCP4725_SetValue(sDL212_Config.vx_value[4]);
 						delay_us(20);
 					}
-				  Value[Value_Count++] = VoltDiff(2,sDL212_Config.filter[2],sDL212_Config.revdiff[2],sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
+				  Value[Value_Count++] = VoltDiff(2,sDL212_Config.filter[4],sDL212_Config.revdiff[2],sDL212_Config.range[4])*sDL212_Config.mul[4]+sDL212_Config.offset[4]; 
 				} 
 			}
 			else{
@@ -350,107 +356,113 @@ void DL212_EasyMode_Init(void){
 	unsigned char lrc=0;
 	char *p;
 	
-  EEPROM_Read((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config));
+	SPI_FRAM_SPI_Init();
+	SPI_FRAM_ReadBytes(0,(unsigned char*)&sDL212_Config,sizeof(sDL212_Config));
+	ADS1248_SPI_Init();
+  //EEPROM_Read((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config));
   p = (char *)&sDL212_Config;
 	lrc = LRC((unsigned char*)p,sizeof(sDL212_Config)-4);
 	if(lrc!=sDL212_Config.lrc || 0==lrc){//eeprom中不存在配置或者配置数据出错
-    sDL212_Config.device_id[0] = 'C'; 
-		sDL212_Config.device_id[1] = 'N';
-		sDL212_Config.scan = 1000;
-		DL212_DebugMode = VALUE_DISPLAY_ON;
-		memset(&sDL212_Config.sw[0],1,11);
-		sDL212_Config.sw[6] = 1;//sw12常开
-		sDL212_Config.mode[3] = 1;//c1 for psw
-		sDL212_Config.mode[4] = 1;//c2 for pll
-	} 
-	if(sDL212_Config.sw[7]){
-		TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
-		if(sDL212_Config.mea_time[0]){
-			TIM6_Init(sDL212_Config.mea_time[0]);
-		}
-		else{
-			TIM6_Init(1000);
-		} 
+		sDL212_Config.scan = 0xFFFFFFFF; 
 	}
-	else{
-		TIM_Cmd(TIM6, DISABLE);
-	}
-	if(sDL212_Config.sw[8]){
-		TIM5_TI1FP1_Init();//PLL---PA0(TIM5_CH1) 
-		if(sDL212_Config.mea_time[1]){
-			TIM10_Init(sDL212_Config.mea_time[1]);
-		}
-		else{
-			TIM10_Init(1000);
-		}  
-	}	
-	else{
-	  TIM_Cmd(TIM10, DISABLE);
-	}
-	switch(sDL212_Config.mode[3]){
-	  case 0:
-			psSDI12_Func->init(0);
-		  TIM_Cmd(TIM7, DISABLE);
-		break;
-		case 1:
-			psC_Pulse_Func->init(0);//C1脉冲测量 
-		  TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
-		  if(sDL212_Config.mea_time[2]){
-				TIM7_Init(sDL212_Config.mea_time[2]);
-	  	}
-			else{
-				TIM7_Init(1000);
-			} 
-		break;
-		case 2: 
-		break;
-		default:
-		break;
-	}
-	switch(sDL212_Config.mode[4]){
-	  case 0:
-			psSDI12_Func->init(1);
-			TIM_Cmd(TIM4, DISABLE);
-		break;
-		case 1:
-			psC_Pulse_Func->init(1);//C2脉冲测量  
-		  TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
-		  if(sDL212_Config.mea_time[3]){
-				TIM4_Init(sDL212_Config.mea_time[3]);
+	else{	
+		if(sDL212_Config.sw[7]){
+			TIM2_TI2FP2_Init();//PSW-----PA1(TIM2_CH2)
+			if(sDL212_Config.mea_time[0]){
+				TIM6_Init(sDL212_Config.mea_time[0]);
 			}
 			else{
-			  TIM4_Init(1000);
+				TIM6_Init(1000);
 			} 
-		break;
-		case 2: 
-		break;
-		default:
-		break;
-	} 
+		}
+		else{
+			TIM_Cmd(TIM6, DISABLE);
+		}
+		if(sDL212_Config.sw[8]){
+			TIM5_TI1FP1_Init();//PLL---PA0(TIM5_CH1) 
+			if(sDL212_Config.mea_time[1]){
+				TIM10_Init(sDL212_Config.mea_time[1]);
+			}
+			else{
+				TIM10_Init(1000);
+			}  
+		}	
+		else{
+			TIM_Cmd(TIM10, DISABLE);
+		}
+		switch(sDL212_Config.mode[3]){
+			case 0:
+				psSDI12_Func->init(0);
+				TIM_Cmd(TIM7, DISABLE);
+			break;
+			case 1:
+				psC_Pulse_Func->init(0);//C1脉冲测量 
+				TIM9_TI2FP2_Init();//C1------PA3(TIM9_CH2) 
+				if(sDL212_Config.mea_time[2]){
+					TIM7_Init(sDL212_Config.mea_time[2]);
+				}
+				else{
+					TIM7_Init(1000);
+				} 
+			break;
+			case 2: 
+			break;
+			default:
+			break;
+		}
+		switch(sDL212_Config.mode[4]){
+			case 0:
+				psSDI12_Func->init(1);
+				TIM_Cmd(TIM4, DISABLE);
+			break;
+			case 1:
+				psC_Pulse_Func->init(1);//C2脉冲测量  
+				TIM3_ETR_Init();   //C2------PD2(TIM3_ETR)
+				if(sDL212_Config.mea_time[3]){
+					TIM4_Init(sDL212_Config.mea_time[3]);
+				}
+				else{
+					TIM4_Init(1000);
+				} 
+			break;
+			case 2: 
+			break;
+			default:
+			break;
+		} 
+	}
 }
 
 void DL212_Config_Utility(void){
   unsigned int i=0,timeout=0;
 	char message[10],*p;
+	static struct CONFIG cfg; 
   unsigned char lrc=0;	
 	
 	if(0 == strncmp("DL212",(const char*)(sUSB_Para.rx_buf),5)){  
+		if(eSuspended != eTaskGetState(Task1_Handler)){
+			vTaskSuspend(Task1_Handler); 
+		}
 	  if(0 == strncmp("DL212 Configuration Utility Write",(const char*)(sUSB_Para.rx_buf),34)){  
-			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
-			p = (char *)&sDL212_Config;		
+			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 		
+			p = (char*)&cfg;
 			while(i<sizeof(sDL212_Config) && timeout++<0x100000){	
 				CDC_Receive_DATA();	
 				if(sUSB_Para.packet_rec){ 
 					timeout = 0;				
-					memcpy((char *)(p+i),sUSB_Para.rx_buf,sUSB_Para.rec_len);	 	 
+					memcpy(p+i,sUSB_Para.rx_buf,sUSB_Para.rec_len);	 	 
 					i += sUSB_Para.rec_len;	 
 					sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 	
 				}	
 			} 
-			lrc = LRC((unsigned char*)p,sizeof(sDL212_Config)-4);  	
-			if(lrc == sDL212_Config.lrc){
+			lrc = LRC((unsigned char*)&cfg,sizeof(sDL212_Config)-4);  	
+			if(lrc == cfg.lrc){
 				i=sprintf(message,"lrc ok\r\n");USB_Send((unsigned char *)message,i);	
-				EEPROM_Write((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config)); 
+				memcpy((char *)(&sDL212_Config),(char *)&cfg,sizeof(sDL212_Config));	
+				SPI_FRAM_SPI_Init();
+				SPI_FRAM_WriteBytes(0,(unsigned char*)&sDL212_Config,sizeof(sDL212_Config)); 
+				ADS1248_SPI_Init();
+				//EEPROM_Write((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config)); 
 				DL212_EasyMode_Init();
 			}	
 			else{	
@@ -459,7 +471,6 @@ void DL212_Config_Utility(void){
 		}
 		else if(0 == strncmp("DL212 Configuration Utility Read",(const char*)(sUSB_Para.rx_buf),33)){ 
 			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
-			p = (char *)&sDL212_Config;		
 			USB_Send((unsigned char*)&sDL212_Config,sizeof(sDL212_Config));
 		}
 		else if(0 == strncmp("DL212 value display on",(const char*)(sUSB_Para.rx_buf),22)){ 
@@ -481,7 +492,8 @@ void DL212_Config_Utility(void){
 		else{
 		  __nop();
 		}
-	} 
+	}
+ 
 }
 
 unsigned char LRC( unsigned char *buf,unsigned short int len){

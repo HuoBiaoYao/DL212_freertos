@@ -24,8 +24,7 @@
 #define ADS1248_SI_AF         	 GPIO_AF_SPI1
 
 #define ADS1248_DISABLE()        __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();\
-                                 GPIO_SetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN);\
-                                 __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+                                 GPIO_SetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN); 
 #define ADS1248_ENABLE()         GPIO_ResetBits(ADS1248_CS_GPIO_PORT, ADS1248_CS_PIN);\
                                  __nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
 //Conversion start

@@ -101,6 +101,7 @@ void Task_Start(void *pvParameters){
 }
   
 unsigned int Scan_Count=0; 
+unsigned char Task1_
 void Task1(void *pvParameters){ 
 	TickType_t xLastWakeTime; 
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000);  
@@ -124,16 +125,16 @@ void Task1(void *pvParameters){
     LED_SCAN_OFF();	
 		#ifndef USE_PCF8563
 		if(sDL212_Config.scan){
-		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan)-20);
+		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan+1));
 		}
 		else{
-		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(980));
+		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1001));
 		}
 		#else
-		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(980));
+		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1001));
 		#endif		
 		if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
-			vTaskSuspend(Task1_Handler); 
+      
 		}
 	} 
 } 
@@ -171,13 +172,17 @@ void Task2(void *pvParameters){
 				}				
 			}
 			if(VALUE_DISPLAY_ON==DL212_DebugMode || VALUE_DISPLAY_OFF==DL212_DebugMode){
-				vTaskResume(Task1_Handler); 
+				if(eSuspended == eTaskGetState(Task1_Handler)){
+				  vTaskResume(Task1_Handler); 
+				}
 			}
 	  } 
 		else{ 
 			if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
 				DL212_DebugMode = VALUE_DISPLAY_ON;
-				vTaskResume(Task1_Handler); 
+				if(eSuspended == eTaskGetState(Task1_Handler)){
+				  vTaskResume(Task1_Handler); 
+				}
 			}
 		  if(BinarySemaphore_USB != NULL){ 
         if(xSemaphoreTake(BinarySemaphore_USB,portMAX_DELAY) == pdTRUE){ 

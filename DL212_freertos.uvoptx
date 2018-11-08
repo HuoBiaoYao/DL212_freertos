@@ -150,7 +150,7 @@
           <Type>0</Type>
           <LineNumber>206</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134223962</Address>
+          <Address>134224166</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -161,77 +161,49 @@
           <ExecCommand></ExecCommand>
           <Expression>\\DL212_freertos\SRC&amp;INH/stm32l1xx_it.c\206</Expression>
         </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>30</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134242822</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\SRC&amp;INH\hal\hal_flash.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\DL212_freertos\SRC&amp;INH/hal/hal_flash.c\30</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>33</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134242838</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\SRC&amp;INH\hal\hal_flash.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\DL212_freertos\SRC&amp;INH/hal/hal_flash.c\33</Expression>
+        </Bp>
       </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Value</ItemText>
+          <ItemText>Scan_Count</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>DL212_DebugMode</ItemText>
-        </Ww>
-        <Ww>
-          <count>2</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sUSB_Para</ItemText>
-        </Ww>
-        <Ww>
-          <count>3</count>
-          <WinNumber>1</WinNumber>
           <ItemText>sDL212_Config</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Value_Count</ItemText>
-        </Ww>
-        <Ww>
-          <count>5</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Value_Ascii</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Scan_Count</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sSDI12_Para</ItemText>
-        </Ww>
-        <Ww>
-          <count>8</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>SDI12_Data_Ascii</ItemText>
-        </Ww>
-        <Ww>
-          <count>9</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>DL212_DebugMode</ItemText>
-        </Ww>
-        <Ww>
-          <count>10</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>eSDI12_BUS</ItemText>
-        </Ww>
-        <Ww>
-          <count>11</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>PSW_Value</ItemText>
-        </Ww>
-        <Ww>
-          <count>12</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Value[10]</ItemText>
-        </Ww>
-        <Ww>
-          <count>13</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Value</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
