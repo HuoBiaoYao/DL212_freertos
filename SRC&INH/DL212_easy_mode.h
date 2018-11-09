@@ -29,8 +29,8 @@ struct CONFIG{
 
 extern unsigned char DL212_DebugMode;
 extern struct CONFIG sDL212_Config;
-extern float PSW_Value,PLL_Value,C1_Value,C2_Value;
-extern float Value[];
+extern double PSW_Value,PLL_Value,C1_Value,C2_Value;
+extern double Value[];
 extern char Value_Ascii[];
 extern unsigned int Value_Ascii_Len; 
 extern unsigned int RTC_IntCount;

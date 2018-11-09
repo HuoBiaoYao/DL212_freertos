@@ -116,10 +116,6 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
-          <Key>DLGUARM</Key>
-        </SetRegEntry>
-        <SetRegEntry>
-          <Number>0</Number>
           <Key>ARMRTXEVENTFLAGS</Key>
           <Name>-L70 -Z18 -C0 -M0 -T1</Name>
         </SetRegEntry>
@@ -150,7 +146,7 @@
           <Type>0</Type>
           <LineNumber>206</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134224166</Address>
+          <Address>134224126</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -166,7 +162,7 @@
           <Type>0</Type>
           <LineNumber>30</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134242822</Address>
+          <Address>134243894</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -182,7 +178,7 @@
           <Type>0</Type>
           <LineNumber>33</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134242838</Address>
+          <Address>134243910</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -204,6 +200,26 @@
           <count>1</count>
           <WinNumber>1</WinNumber>
           <ItemText>sDL212_Config</ItemText>
+        </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>DL212_DebugMode</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>Value</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>Value_Ascii_Len</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>Value_Ascii</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>

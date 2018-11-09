@@ -2,7 +2,8 @@
 #define __MAIN_H
 #include "FreeRTOS.h"  
 #include "semphr.h"
-#include "task.h"
+#include "task.h" 
+#include "event_groups.h"
 #include "timers.h"
 
 #define LED_SCAN_ON()   GPIOC->BSRRL = GPIO_Pin_6; 
@@ -13,13 +14,14 @@ extern TaskHandle_t Task1_Handler;
 extern TaskHandle_t Task2_Handler; 
 extern TaskHandle_t Task3_Handler; 
 
+extern EventGroupHandle_t EventGroupHandler; 
 extern QueueHandle_t xQueue;
 extern SemaphoreHandle_t BinarySemaphore_MB,\
 	                       BinarySemaphore_USB,\
 												 BinarySemaphore_USART,\
                          BinarySemaphore_SDI12_FirstByte,\
 												 BinarySemaphore_SDI12_CR_LF; 
-extern SemaphoreHandle_t xSemaphore;
+extern SemaphoreHandle_t MutexSemaphore;
  
 extern TimerHandle_t OneShotTimer_Handle;
 

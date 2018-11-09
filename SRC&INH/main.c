@@ -1,9 +1,7 @@
 #include "main.h" 
 #include "hw.h"
 #include "hal.h"
-#include "delay.h" 
-#include "task.h"
-#include "semphr.h"
+#include "delay.h"   
 #include "my_usb.h"
 #include "DL212_easy_mode.h"
  #include "issort.h" 
@@ -22,16 +20,18 @@ TaskHandle_t Task1_Handler;
 TaskHandle_t Task2_Handler; 
 TaskHandle_t Task3_Handler; 
  
+TimerHandle_t OneShotTimer_Handle; 
+
+EventGroupHandle_t EventGroupHandler; 
 QueueHandle_t xQueue;
 SemaphoreHandle_t BinarySemaphore_MB,\
                   BinarySemaphore_USB,\
 									BinarySemaphore_USART,\
 									BinarySemaphore_SDI12_FirstByte,\
-                  BinarySemaphore_SDI12_CR_LF;									
-SemaphoreHandle_t xSemaphore; 
+                  BinarySemaphore_SDI12_CR_LF; 
+SemaphoreHandle_t MutexSemaphore; 
 
-TimerHandle_t OneShotTimer_Handle; 
-
+  
 int main(void){
 	unsigned int i;
   
@@ -67,15 +67,17 @@ int main(void){
 //开始任务任务函数
 void Task_Start(void *pvParameters){
   taskENTER_CRITICAL();           //进入临界区
+	EventGroupHandler = xEventGroupCreate();
   xQueue = xQueueCreate(2,sizeof(char));
 	BinarySemaphore_MB = xSemaphoreCreateBinary(); 
   BinarySemaphore_USB = xSemaphoreCreateBinary();
 	BinarySemaphore_USART = xSemaphoreCreateBinary();
 	BinarySemaphore_SDI12_FirstByte = xSemaphoreCreateBinary(); 
 	BinarySemaphore_SDI12_CR_LF = xSemaphoreCreateBinary(); 
- 	xSemaphore = xSemaphoreCreateMutex(); 
-  if(xQueue==NULL || BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || BinarySemaphore_USART==NULL || BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL || xSemaphore==NULL){
-	  delay_ms(10000);  
+ 	MutexSemaphore = xSemaphoreCreateMutex(); 
+  if(BinarySemaphore_MB==NULL || BinarySemaphore_USB==NULL || BinarySemaphore_USART==NULL || BinarySemaphore_SDI12_FirstByte==NULL ||BinarySemaphore_SDI12_CR_LF==NULL || MutexSemaphore==NULL){
+	  LED_SCAN_ON();
+		while(1);
 	} 
 	//SDI12_C1_SEND_DISABLE();
 	//psC_RS232_Func->init(0,0);  
@@ -101,11 +103,10 @@ void Task_Start(void *pvParameters){
 }
   
 unsigned int Scan_Count=0; 
-unsigned char Task1_
-void Task1(void *pvParameters){ 
-	TickType_t xLastWakeTime; 
-	const TickType_t xPeriod=pdMS_TO_TICKS(1000);  
-	 
+TickType_t xLastWakeTime;  
+void Task1(void *pvParameters){  
+	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
+	
 	xLastWakeTime = xTaskGetTickCount();
 	LED_SCAN_ON();
 	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(500));LED_SCAN_OFF(); 
@@ -115,27 +116,19 @@ void Task1(void *pvParameters){
 	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_OFF(); 
 	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_ON(); 
 	vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(100));LED_SCAN_OFF(); 
-  while(1){  
-		if(SDI12_0_TRANSPARENT!=DL212_DebugMode && SDI12_1_TRANSPARENT!=DL212_DebugMode){
-			LED_SCAN_ON(); 
-      DL212_EasyMode_Scan(); 
-		}
+  while(1){ 
+		xSemaphoreTake(MutexSemaphore,portMAX_DELAY);
+		LED_SCAN_ON();
+		DL212_EasyMode_Scan(); 
+		LED_SCAN_OFF();
 		Scan_Count++; 
-		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(30));
-    LED_SCAN_OFF();	
-		#ifndef USE_PCF8563
+		xSemaphoreGive(MutexSemaphore);	
 		if(sDL212_Config.scan){
-		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan+1));
+			vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan+3));
 		}
 		else{
-		  vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1001));
-		}
-		#else
-		vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1001));
-		#endif		
-		if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
-      
-		}
+			vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1003));
+		} 
 	} 
 } 
 
@@ -147,9 +140,9 @@ void Task2(void *pvParameters){
     if(USB_DETECT()){
 			if(bDeviceState == CONFIGURED){ 
 				CDC_Receive_DATA(); 
-				if(sUSB_Para.packet_rec){				
+				if(sUSB_Para.packet_rec){
+					xSemaphoreTake(MutexSemaphore,5);					
 					DL212_Config_Utility();
-					//USB_Send(sUSB_Para.rx_buf,sUSB_Para.rec_len);  
 					switch(DL212_DebugMode){
 						case SDI12_0_TRANSPARENT:
 							SDI12_Transparent(0);
@@ -161,6 +154,13 @@ void Task2(void *pvParameters){
 			      break; 
 					  sUSB_Para.packet_rec = sUSB_Para.rec_len  = 0;	
 					}
+			    if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
+					  xSemaphoreTake(MutexSemaphore,5);
+			    }
+			    else{
+						xLastWakeTime = xTaskGetTickCount();
+			    	xSemaphoreGive(MutexSemaphore);	
+		    	}
 				} 
 				if(Scan_Count > count){
 				  count = Scan_Count;
@@ -169,21 +169,13 @@ void Task2(void *pvParameters){
 						memset(sUSB_Para.tx_buf,0,400);
 						sUSB_Para.tx_len = 0;
 					}
-				}				
-			}
-			if(VALUE_DISPLAY_ON==DL212_DebugMode || VALUE_DISPLAY_OFF==DL212_DebugMode){
-				if(eSuspended == eTaskGetState(Task1_Handler)){
-				  vTaskResume(Task1_Handler); 
 				}
 			}
 	  } 
-		else{ 
-			if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
-				DL212_DebugMode = VALUE_DISPLAY_ON;
-				if(eSuspended == eTaskGetState(Task1_Handler)){
-				  vTaskResume(Task1_Handler); 
-				}
-			}
+		else{  
+		  DL212_DebugMode = VALUE_DISPLAY_ON; 
+			xLastWakeTime = xTaskGetTickCount();
+			xSemaphoreGive(MutexSemaphore);	
 		  if(BinarySemaphore_USB != NULL){ 
         if(xSemaphoreTake(BinarySemaphore_USB,portMAX_DELAY) == pdTRUE){ 
 	        SystemInit(); 

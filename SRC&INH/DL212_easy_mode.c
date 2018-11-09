@@ -7,14 +7,14 @@
 #include "delay.h"
 #include "ctype.h" 
 #include "DL212_easy_mode.h"
-#include "main.h"
+#include "main.h" 
 #include "mcp4725.h"
 #include "ads1248.h"
 #include "stm32l1xx_tim.h"
 
 struct CONFIG sDL212_Config;
 
-float Value[10],Batt,PSW_Value,PLL_Value,C1_Value,C2_Value;
+double Value[10],Batt,PSW_Value=0,PLL_Value=0,C1_Value=0,C2_Value=0;
 char Value_Ascii[400];
 unsigned int Value_Ascii_Len=0; 
 unsigned char Value_Count=0,DL212_DebugMode=VALUE_DISPLAY_ON; 
@@ -176,14 +176,17 @@ float VoltSe(unsigned char chan,unsigned char filter,unsigned char range){
 void DL212_EasyMode_Scan(void){
 	unsigned int len,i,pack; 
 	int timeout=100000;
-//#ifdef USE_PCF8563 	
-	//if(sDL212_Config.scan && RTC_IntCount != LastScanIntCount){ 
-	  //if(0 == RTC_IntCount%sDL212_Config.scan){ 
-			//LastScanIntCount = RTC_IntCount; 
-//#endif
+ 
 		 Value_Count = Value_Ascii_Len = 0;
 		 Batt = Battery(); 
 		 Value[Value_Count++] = Batt;
+		 if(1 == sDL212_Config.sw[6]){//1:常开 0:测量时打开   2：关闭
+		   psSW12_Func->sw(0,1);
+		 } 
+	   if(0 == sDL212_Config.sw[6]){//1:常开 0:测量时打开   2：关闭
+		   psSW12_Func->sw(0,1);
+			 vTaskDelay(20);
+		 } 
 		 if(0 == sDL212_Config.mode[0]){//HL-1
 				if(1 == sDL212_Config.sw[0]){
 					if(1== sDL212_Config.vx_sw[0]){
@@ -259,9 +262,6 @@ void DL212_EasyMode_Scan(void){
 					Value[Value_Count++] = VoltSe(5,sDL212_Config.filter[5],sDL212_Config.range[5])*sDL212_Config.mul[5]+sDL212_Config.offset[5]; 
 				}
 			} 
-			if(2 != sDL212_Config.sw[6]){//1:常开 0:测量时打开   2：关闭
-			  psSW12_Func->sw(0,1);
-			} 
 			if(sDL212_Config.sw[7]){ 
 				Value[Value_Count++] = PSW_Value*sDL212_Config.mul[6]+sDL212_Config.offset[6];  
 			}
@@ -271,7 +271,7 @@ void DL212_EasyMode_Scan(void){
 			//把除了SDI12传感器之外的数据先处理成ascii
 			Value_Ascii_Len = sprintf(Value_Ascii,"%c%c,",sDL212_Config.device_id[0],sDL212_Config.device_id[1]);  
 			for(i=0;i<Value_Count;i++){
-			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.4f,",Value[i]);
+			  Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.3f,",Value[i]);
 			}
 			if(1 == sDL212_Config.sw[9]){
 			  switch(sDL212_Config.mode[3]){
@@ -285,7 +285,7 @@ void DL212_EasyMode_Scan(void){
 					break;
 					case 1:
 						C1_Value = C1_Value*sDL212_Config.mul[8]+sDL212_Config.offset[8];
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.4f,",C1_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.3f,",C1_Value);
 					break;
 					default:
 					break;
@@ -303,7 +303,7 @@ void DL212_EasyMode_Scan(void){
 					break;
 					case 1:
 					  C2_Value = C2_Value*sDL212_Config.mul[9]+sDL212_Config.offset[9];
-						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.4f,",C2_Value);
+						Value_Ascii_Len += sprintf(Value_Ascii+Value_Ascii_Len,"%.3f,",C2_Value);
 					break;
 					default:
 					break;
@@ -329,7 +329,7 @@ void DL212_EasyMode_Scan(void){
 			memcpy(USART_DMA_TxBuf,Value_Ascii ,Value_Ascii_Len ); 
 			DMA_SetCurrDataCounter(DMA1_Channel4,Value_Ascii_Len ); 
 			DMA_Cmd(DMA1_Channel4,ENABLE);
-			if(xSemaphoreTake(BinarySemaphore_USART,200) == pdTRUE){ 
+			if(xSemaphoreTake(BinarySemaphore_USART,400) == pdTRUE){ 
 			  sUSB_Para.tx_len = Value_Ascii_Len;
 			  memcpy(sUSB_Para.tx_buf,Value_Ascii,Value_Ascii_Len); 
 			  memset(Value_Ascii,0,400); 
@@ -339,13 +339,7 @@ void DL212_EasyMode_Scan(void){
 			  memcpy(sUSB_Para.tx_buf+len,Value_Ascii,Value_Ascii_Len); 
 				sUSB_Para.tx_len = Value_Ascii_Len+len;
 			  memset(Value_Ascii,0,400); 	
-			}
-			
-      //printf("%s",Value_Ascii+Value_Ascii_Len);  
-//#ifdef USE_PCF8563 	
-//	  }
-//	}
-//#endif 
+			} 
 	if(1 != sDL212_Config.sw[6]){
 	  psSW12_Func->sw(0,0);
 	}
@@ -440,13 +434,11 @@ void DL212_Config_Utility(void){
   unsigned char lrc=0;	
 	
 	if(0 == strncmp("DL212",(const char*)(sUSB_Para.rx_buf),5)){  
-		if(eSuspended != eTaskGetState(Task1_Handler)){
-			vTaskSuspend(Task1_Handler); 
-		}
+		//i=sprintf(message,"DL212\r\n");USB_Send((unsigned char *)message,i);		
 	  if(0 == strncmp("DL212 Configuration Utility Write",(const char*)(sUSB_Para.rx_buf),34)){  
 			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 		
 			p = (char*)&cfg;
-			while(i<sizeof(sDL212_Config) && timeout++<0x100000){	
+			while(i<sizeof(sDL212_Config) && timeout++<100000){	
 				CDC_Receive_DATA();	
 				if(sUSB_Para.packet_rec){ 
 					timeout = 0;				
@@ -454,6 +446,9 @@ void DL212_Config_Utility(void){
 					i += sUSB_Para.rec_len;	 
 					sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 	
 				}	
+				else{
+				  delay_us(10);timeout++;
+				}
 			} 
 			lrc = LRC((unsigned char*)&cfg,sizeof(sDL212_Config)-4);  	
 			if(lrc == cfg.lrc){
@@ -491,9 +486,9 @@ void DL212_Config_Utility(void){
 		} 
 		else{
 		  __nop();
-		}
-	}
- 
+		} 	
+		sUSB_Para.rx_buf[0]=0;
+	} 
 }
 
 unsigned char LRC( unsigned char *buf,unsigned short int len){

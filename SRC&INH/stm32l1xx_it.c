@@ -94,7 +94,7 @@ void TIM6_IRQHandler(void){
 			  PSW_Value = sDL212_Config.mea_time[0]/(float)(count)/1000;
 		  break;
 		  case 2:
-			  PSW_Value = count;
+			  PSW_Value += count;
 		  break;
 		  default:
 		  break;
@@ -120,7 +120,7 @@ void TIM10_IRQHandler(void){
 			  PLL_Value = sDL212_Config.mea_time[1]/(float)(count)/1000;
 		  break;
 		  case 2:
-			  PLL_Value = count;
+			  PLL_Value += count;
 		  break;
 		  default:
 		  break;
@@ -146,7 +146,7 @@ void TIM7_IRQHandler(void){
 			  C1_Value = sDL212_Config.mea_time[2]/(float)(count)/1000;
 		  break;
 		  case 2:
-			  C1_Value = count;
+			  C1_Value += count;
 		  break;
 		  default:
 		  break;
@@ -166,13 +166,13 @@ void TIM4_IRQHandler(void){
 	  //TIM_Cmd(TIM4,DISABLE);
 	  switch(sDL212_Config.datatype[3]){
 			case 0:
-			  C2_Value = (float)(count)*1000/sDL212_Config.mea_time[1];
+			  C2_Value = (float)(count)*1000/sDL212_Config.mea_time[3];
 		  break;
 		  case 1:
-			  C2_Value = sDL212_Config.mea_time[1]/(float)(count)/1000;
+			  C2_Value = sDL212_Config.mea_time[3]/(float)(count)/1000;
 		  break;
 		  case 2:
-			  C2_Value = count;
+			  C2_Value += count;
 		  break;
 		  default:
 		  break;			
