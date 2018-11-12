@@ -180,12 +180,11 @@ void DL212_EasyMode_Scan(void){
 		 Value_Count = Value_Ascii_Len = 0;
 		 Batt = Battery(); 
 		 Value[Value_Count++] = Batt;
-		 if(1 == sDL212_Config.sw[6]){//1:常开 0:测量时打开   2：关闭
+		 if(0 == sDL212_Config.sw[6]){//0:常开 1：关闭
 		   psSW12_Func->sw(0,1);
 		 } 
-	   if(0 == sDL212_Config.sw[6]){//1:常开 0:测量时打开   2：关闭
-		   psSW12_Func->sw(0,1);
-			 vTaskDelay(20);
+	   else{
+		   psSW12_Func->sw(0,0);
 		 } 
 		 if(0 == sDL212_Config.mode[0]){//HL-1
 				if(1 == sDL212_Config.sw[0]){
@@ -340,9 +339,6 @@ void DL212_EasyMode_Scan(void){
 				sUSB_Para.tx_len = Value_Ascii_Len+len;
 			  memset(Value_Ascii,0,400); 	
 			} 
-	if(1 != sDL212_Config.sw[6]){
-	  psSW12_Func->sw(0,0);
-	}
 } 
 
 
@@ -476,22 +472,22 @@ void DL212_Config_Utility(void){
 							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
 							USB_Send((unsigned char*)&sDL212_Config,sizeof(sDL212_Config));
 						}
-						else if(0 == strncmp("DL212 value display on",(const char*)(sUSB_Para.rx_buf),22)){ 
+						else if(0 == strncmp("DL212 display on",(const char*)(sUSB_Para.rx_buf),16)){ 
 							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;		
 							DL212_DebugMode = VALUE_DISPLAY_ON;	 
 							break;
 						}
-						else if(0 == strncmp("DL212 value display off",(const char*)(sUSB_Para.rx_buf),23)){
+						else if(0 == strncmp("DL212 display off",(const char*)(sUSB_Para.rx_buf),17)){
 							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;		
 							DL212_DebugMode = VALUE_DISPLAY_OFF;	
 							break;		
 						}
-						else if(0 == strncmp("DL212 c1 port sdi12 transparent",(const char*)(sUSB_Para.rx_buf),32)){  
+						else if(0 == strncmp("DL212 c1 sdi12 transparent",(const char*)(sUSB_Para.rx_buf),26)){  
 							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
 							DL212_DebugMode = SDI12_0_TRANSPARENT; 
 							break;
 						}
-						else if(0 == strncmp("DL212 c2 port sdi12 transparent",(const char*)(sUSB_Para.rx_buf),32)){  
+						else if(0 == strncmp("DL212 c2 sdi12 transparent",(const char*)(sUSB_Para.rx_buf),26)){  
 							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
 							DL212_DebugMode = SDI12_1_TRANSPARENT; 
 							break;

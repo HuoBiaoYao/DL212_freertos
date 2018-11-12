@@ -154,8 +154,7 @@ void Task2(void *pvParameters){
 							SDI12_Transparent(1);
 						break;
 						default:
-			      break; 
-					  sUSB_Para.packet_rec = sUSB_Para.rec_len  = 0;	
+			      break;  
 					}
 			    if(SDI12_0_TRANSPARENT==DL212_DebugMode || SDI12_1_TRANSPARENT==DL212_DebugMode){
 					  xSemaphoreTake(MutexSemaphore,5);
@@ -164,6 +163,7 @@ void Task2(void *pvParameters){
 						xLastWakeTime = xTaskGetTickCount();
 			    	xSemaphoreGive(MutexSemaphore);	
 		    	}
+					sUSB_Para.packet_rec = sUSB_Para.rec_len  = 0;
 				} 
 				if(Scan_Count > count){
 				  count = Scan_Count;
