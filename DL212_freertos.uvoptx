@@ -116,6 +116,11 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
+          <Key>DLGUARM</Key>
+          <Name>鼅????絫</Name>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
           <Key>ARMRTXEVENTFLAGS</Key>
           <Name>-L70 -Z18 -C0 -M0 -T1</Name>
         </SetRegEntry>
@@ -146,7 +151,7 @@
           <Type>0</Type>
           <LineNumber>206</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134224126</Address>
+          <Address>134224816</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -162,7 +167,7 @@
           <Type>0</Type>
           <LineNumber>30</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134243894</Address>
+          <Address>134244594</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -178,7 +183,7 @@
           <Type>0</Type>
           <LineNumber>33</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134243910</Address>
+          <Address>134244610</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -188,6 +193,22 @@
           <Filename>.\SRC&amp;INH\hal\hal_flash.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\DL212_freertos\SRC&amp;INH/hal/hal_flash.c\33</Expression>
+        </Bp>
+        <Bp>
+          <Number>3</Number>
+          <Type>0</Type>
+          <LineNumber>53</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134242972</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>.\SRC&amp;INH\SYSTEM\sys.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\DL212_freertos\SRC&amp;INH/SYSTEM/sys.c\53</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -220,6 +241,11 @@
           <count>5</count>
           <WinNumber>1</WinNumber>
           <ItemText>Value_Ascii</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>cfg</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>

@@ -330,7 +330,7 @@ __SDI12_RSL SDI12Recorder(char port,unsigned char *sdicmd){
     	}
 			j = i+1;
     }
-		vTaskDelay(30);
+		vTaskDelay(200);
 		i++;
 	}
 	SDI12_Data_Ascii_Cnt[port] = 0;

@@ -48,7 +48,7 @@ int main(void){
   psFlash_Func->init();
 	IIC_PCF_GPIO_Init(); 
 	psSW12_Func->init();//SW12控制口初始化
-	ADS1248_Init(); 
+	ADS1248_Init();  
 	DL212_EasyMode_Init();  
 	//delay_ms(3000); 
   //DBGMCU_Config(DBGMCU_SLEEP,ENABLE);
@@ -106,6 +106,7 @@ unsigned int Scan_Count=0;
 TickType_t xLastWakeTime;  
 void Task1(void *pvParameters){  
 	const TickType_t xPeriod=pdMS_TO_TICKS(1000); 
+	unsigned int i;
 	
 	xLastWakeTime = xTaskGetTickCount();
 	LED_SCAN_ON();
@@ -123,12 +124,14 @@ void Task1(void *pvParameters){
 		LED_SCAN_OFF();
 		Scan_Count++; 
 		xSemaphoreGive(MutexSemaphore);	
-		if(sDL212_Config.scan){
-			vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan+3));
+		if(sDL212_Config.scan < 65535){
+			vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan+1));
 		}
 		else{
-			vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(1003));
-		} 
+			for(i=0;i<100;i++){
+				vTaskDelayUntil(&xLastWakeTime,pdMS_TO_TICKS(sDL212_Config.scan/100));
+			} 
+		}  
 	} 
 } 
 

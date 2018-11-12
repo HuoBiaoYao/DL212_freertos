@@ -357,7 +357,7 @@ void DL212_EasyMode_Init(void){
   p = (char *)&sDL212_Config;
 	lrc = LRC((unsigned char*)p,sizeof(sDL212_Config)-4);
 	if(lrc!=sDL212_Config.lrc || 0==lrc){//eeprom中不存在配置或者配置数据出错
-		sDL212_Config.scan = 0xFFFFFFFF; 
+		DL212_DefaultConfig(); 
 	}
 	else{	
 		if(sDL212_Config.sw[7]){
@@ -433,18 +433,95 @@ void DL212_Config_Utility(void){
 	static struct CONFIG cfg; 
   unsigned char lrc=0;	
 	
-	if(0 == strncmp("DL212",(const char*)(sUSB_Para.rx_buf),5)){  
-		//i=sprintf(message,"DL212\r\n");USB_Send((unsigned char *)message,i);		
-	  if(0 == strncmp("DL212 Configuration Utility Write",(const char*)(sUSB_Para.rx_buf),34)){  
+	if('$' == *sUSB_Para.rx_buf){
+		sprintf(message,"$$$$$$$$");
+		for(i=0;i<5;i++){
+		 USB_Send((unsigned char *)message,9);
+		} 
+		sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 	
+		while(timeout++ < 300000){
+			if(USB_DETECT()){
+				if(bDeviceState == CONFIGURED){ 
+					CDC_Receive_DATA();  
+					if(sUSB_Para.packet_rec){
+						timeout = 0;
+						if(0 == strncmp("DL212 Write",(const char*)(sUSB_Para.rx_buf),11)){ 
+							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 
+							p = (char*)&cfg; 
+							i=0;
+							while(i<sizeof(sDL212_Config) && timeout++<300000){	
+								CDC_Receive_DATA();	
+								if(sUSB_Para.packet_rec){ 
+									timeout = 0; 
+									memcpy(p+i,sUSB_Para.rx_buf,sUSB_Para.rec_len); 
+									i += sUSB_Para.rec_len; 
+									sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 
+								} 
+							} 
+							lrc = LRC((unsigned char*)&cfg,sizeof(sDL212_Config)-4);  	
+							if(lrc == cfg.lrc){
+								i=sprintf(message,"lrc ok\r\n");USB_Send((unsigned char *)message,i);	
+								memcpy((char *)(&sDL212_Config),(char *)&cfg,sizeof(sDL212_Config));	
+								SPI_FRAM_SPI_Init();
+								SPI_FRAM_WriteBytes(0,(unsigned char*)&sDL212_Config,sizeof(sDL212_Config)); 
+								ADS1248_SPI_Init();
+								//EEPROM_Write((unsigned char*)&sDL212_Config,EEPROM_BANK_START_ADDR,sizeof(sDL212_Config)); 
+								DL212_EasyMode_Init();
+							}	
+							else{	
+								i=sprintf(message,"lrc error\r\n");USB_Send((unsigned char *)message,i);	
+							}
+						}
+					  else if(0 == strncmp("DL212 Read",(const char*)(sUSB_Para.rx_buf),10)){ 
+							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
+							USB_Send((unsigned char*)&sDL212_Config,sizeof(sDL212_Config));
+						}
+						else if(0 == strncmp("DL212 value display on",(const char*)(sUSB_Para.rx_buf),22)){ 
+							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;		
+							DL212_DebugMode = VALUE_DISPLAY_ON;	 
+							break;
+						}
+						else if(0 == strncmp("DL212 value display off",(const char*)(sUSB_Para.rx_buf),23)){
+							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;		
+							DL212_DebugMode = VALUE_DISPLAY_OFF;	
+							break;		
+						}
+						else if(0 == strncmp("DL212 c1 port sdi12 transparent",(const char*)(sUSB_Para.rx_buf),32)){  
+							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
+							DL212_DebugMode = SDI12_0_TRANSPARENT; 
+							break;
+						}
+						else if(0 == strncmp("DL212 c2 port sdi12 transparent",(const char*)(sUSB_Para.rx_buf),32)){  
+							sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
+							DL212_DebugMode = SDI12_1_TRANSPARENT; 
+							break;
+						} 
+						else{
+						  sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 
+						}
+					}
+				}
+			} 
+		} 
+	} 
+}
+/*void DL212_Config_Utility(void){
+  unsigned int i=0,timeout=0;
+	char message[10],*p;
+	static struct CONFIG cfg; 
+  unsigned char lrc=0;	
+	
+	if(0 == strncmp("DL212",(const char*)(sUSB_Para.rx_buf),5)){     
+			i=sprintf(message,"DL212\r\n");USB_Send((unsigned char *)message,i);		
 			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 		
 			p = (char*)&cfg;
 			while(i<sizeof(sDL212_Config) && timeout++<100000){	
 				CDC_Receive_DATA();	
 				if(sUSB_Para.packet_rec){ 
-					timeout = 0;				
+					timeout = 0; 
 					memcpy(p+i,sUSB_Para.rx_buf,sUSB_Para.rec_len);	 	 
-					i += sUSB_Para.rec_len;	 
-					sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 	
+					i += sUSB_Para.rec_len; 
+					sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0; 
 				}	
 				else{
 				  delay_us(10);timeout++;
@@ -464,7 +541,7 @@ void DL212_Config_Utility(void){
 				i=sprintf(message,"lrc error\r\n");USB_Send((unsigned char *)message,i);	
 			}
 		}
-		else if(0 == strncmp("DL212 Configuration Utility Read",(const char*)(sUSB_Para.rx_buf),33)){ 
+		else if(0 == strncmp("DL212 Read",(const char*)(sUSB_Para.rx_buf),10)){ 
 			sUSB_Para.packet_rec = 0; sUSB_Para.rec_len = 0;
 			USB_Send((unsigned char*)&sDL212_Config,sizeof(sDL212_Config));
 		}
@@ -489,7 +566,7 @@ void DL212_Config_Utility(void){
 		} 	
 		sUSB_Para.rx_buf[0]=0;
 	} 
-}
+}*/
 
 unsigned char LRC( unsigned char *buf,unsigned short int len){
   unsigned char lrc=0;
@@ -502,3 +579,11 @@ unsigned char LRC( unsigned char *buf,unsigned short int len){
   return lrc;
 }
 
+void DL212_DefaultConfig(void){
+	memset(&sDL212_Config,0,sizeof(sDL212_Config));
+  sDL212_Config.device_id[0] = 'N'; 
+	sDL212_Config.device_id[1] = 'O';   
+	sDL212_Config.scan = 1000; 
+	sDL212_Config.mea_time[0]=sDL212_Config.mea_time[1]=sDL212_Config.mea_time[2]=sDL212_Config.mea_time[3]=1000;
+  sDL212_Config.lrc = LRC((unsigned char*)&sDL212_Config,sizeof(sDL212_Config)-4);  	
+}
